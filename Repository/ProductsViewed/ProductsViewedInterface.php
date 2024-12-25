@@ -29,9 +29,14 @@ use BaksDev\Users\User\Type\Id\UserUid;
 
 interface ProductsViewedInterface
 {
-
+    /**
+     * Получение данных о продукте для анонимного пользователя
+     */
     public function findAnonymousProductInvariablesViewed(): array|bool;
 
+    /**
+     * Получение данных о продукте для авторизованного пользователя
+     */
     public function findUserProductInvariablesViewed(?UserUid $usr): array|bool;
 
 }

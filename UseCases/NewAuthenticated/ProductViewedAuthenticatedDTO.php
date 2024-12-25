@@ -30,7 +30,7 @@ use BaksDev\Users\User\Type\Id\UserUid;
 use DateTimeImmutable;
 use Symfony\Component\Validator\Constraints as Assert;
 
-final class ViewedAuthenticatedDTO
+final class ProductViewedAuthenticatedDTO
 {
 
     #[Assert\Uuid]

@@ -33,7 +33,6 @@ use BaksDev\Users\User\Type\Id\UserUid;
 
 final class ProductViewedMessage
 {
-
     private string $id;
 
     private ?string $product_offer_const;

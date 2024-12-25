@@ -28,8 +28,8 @@ namespace BaksDev\Products\Viewed\UseCases\NewAnonymous;
 use BaksDev\Products\Product\Type\Invariable\ProductInvariableUid;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/** @see ViewedAnonymousDTO */
-final class ViewedAnonymousDTO
+/** @see ProductViewedAnonymousDTO */
+final class ProductViewedAnonymousDTO
 {
 
     #[Assert\Uuid]

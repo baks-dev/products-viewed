@@ -28,8 +28,8 @@ namespace BaksDev\Products\Viewed\UseCases\NewAuthenticated\Tests;
 use BaksDev\Products\Product\Type\Invariable\ProductInvariableUid;
 use BaksDev\Products\Product\UseCase\Admin\NewEdit\Tests\ProductsProductNewTest;
 use BaksDev\Products\Viewed\Entity\ProductsViewed;
-use BaksDev\Products\Viewed\UseCases\NewAuthenticated\ProductViewedAuthenticated;
-use BaksDev\Products\Viewed\UseCases\NewAuthenticated\ViewedAuthenticatedDTO;
+use BaksDev\Products\Viewed\UseCases\NewAuthenticated\ProductViewedAuthenticatedDTO;
+use BaksDev\Products\Viewed\UseCases\NewAuthenticated\ProductViewedAuthenticatedHandler;
 use BaksDev\Users\User\Type\Id\UserUid;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -69,16 +69,16 @@ class ProductViewedAuthenticatedUpdateTest extends KernelTestCase
         $ProductsProductNewTest = new ProductsProductNewTest();
         $ProductsProductNewTest->testUseCase();
 
-        /** @see ViewedAuthenticatedDTO */
-        $ViewedAuthenticatedDTO = new ViewedAuthenticatedDTO();
+        /** @see ProductViewedAuthenticatedDTO */
+        $ViewedAuthenticatedDTO = new ProductViewedAuthenticatedDTO();
 
         $productIvariableUid = new ProductInvariableUid();
         $ViewedAuthenticatedDTO
             ->setId($productIvariableUid)
             ->setUsr(new UserUid());
 
-        /** @var ProductViewedAuthenticated $ProductViewedAuthenticated */
-        $ProductViewedAuthenticated = self::getContainer()->get(ProductViewedAuthenticated::class);
+        /** @var ProductViewedAuthenticatedHandler $ProductViewedAuthenticated */
+        $ProductViewedAuthenticated = self::getContainer()->get(ProductViewedAuthenticatedHandler::class);
         $ProductViewedAuthenticated->addViewedProduct($ViewedAuthenticatedDTO);
 
         /**
@@ -93,13 +93,13 @@ class ProductViewedAuthenticatedUpdateTest extends KernelTestCase
         /**
          * Обновить запись
          */
-        $ViewedAuthenticatedDTO = new ViewedAuthenticatedDTO();
+        $ViewedAuthenticatedDTO = new ProductViewedAuthenticatedDTO();
         $ViewedAuthenticatedDTO
             ->setId($productIvariableUid)
             ->setUsr(new UserUid());
 
-        /** @var ProductViewedAuthenticated $ProductViewedAuthenticated */
-        $ProductViewedAuthenticated = self::getContainer()->get(ProductViewedAuthenticated::class);
+        /** @var ProductViewedAuthenticatedHandler $ProductViewedAuthenticated */
+        $ProductViewedAuthenticated = self::getContainer()->get(ProductViewedAuthenticatedHandler::class);
         $result = $ProductViewedAuthenticated->addViewedProduct($ViewedAuthenticatedDTO);
 
         /**

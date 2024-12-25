@@ -46,9 +46,9 @@ use BaksDev\Products\Product\Entity\ProductInvariable;
 use BaksDev\Products\Product\Entity\Trans\ProductTrans;
 use BaksDev\Products\Viewed\Entity\ProductsViewed;
 use BaksDev\Users\User\Type\Id\UserUid;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Doctrine\DBAL\ArrayParameterType;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 final class ProductsViewedRepository implements ProductsViewedInterface
 {
@@ -323,7 +323,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
      */
     public function findAnonymousProductInvariablesViewed(): array|bool
     {
-        if ($this->session === false)
+        if($this->session === false)
         {
             $this->session = $this->requestStack->getSession();
         }
@@ -334,7 +334,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
          */
         $orderByCase = "CASE invariable.id ";
 
-        foreach ($viewedProducts as $key => $viewedProduct)
+        foreach($viewedProducts as $key => $viewedProduct)
         {
             $orderByCase .= "WHEN '$viewedProduct' THEN $key ";
         }
@@ -347,8 +347,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
             ->from(ProductInvariable::class, 'invariable')
             ->where('invariable.id IN (:viewedProducts)')
             ->setParameter('viewedProducts', $viewedProducts, ArrayParameterType::STRING)
-            ->addOrderBy($orderByCase)
-        ;
+            ->addOrderBy($orderByCase);
 
         return $dbal->fetchAllAssociative();
     }

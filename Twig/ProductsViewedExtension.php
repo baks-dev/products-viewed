@@ -30,19 +30,13 @@ use Twig\Environment;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
-class ProductsViewedExtension extends AbstractExtension
+final class ProductsViewedExtension extends AbstractExtension
 {
-
-    private string $project_dir;
-
     public function __construct(
-        #[Autowire('%kernel.project_dir%')] string $project_dir,
-        private ProductsViewedRepository $productsViewedRepository,
+        #[Autowire('%kernel.project_dir%')] readonly string $project_dir,
+        private readonly ProductsViewedRepository $productsViewedRepository,
         private readonly Security $security
-    )
-    {
-        $this->project_dir = $project_dir;
-    }
+    ) {}
 
     public function getFunctions(): array
     {
@@ -54,17 +48,18 @@ class ProductsViewedExtension extends AbstractExtension
         ];
     }
 
-    public function renderProductsViewed(Environment $twig, $currentProductId)
+    public function renderProductsViewed(Environment $twig, $currentProductId): string
     {
         $currentUser = $this->security->getUser();
-        $productsViewed = $currentUser !== null ? $this->productsViewedRepository->findUserProductInvariablesViewed($currentUser->getId()) :
+        $productsViewed = $currentUser !== null ?
+            $this->productsViewedRepository->findUserProductInvariablesViewed($currentUser->getId()) :
             $this->productsViewedRepository->findAnonymousProductInvariablesViewed();
 
         /** Подключаем если определен пользовательский шаблон */
         if(file_exists($this->project_dir.'/templates/products-viewed/twig/products.viewed.html.twig'))
         {
             return $twig->render(
-                '@Template/products-viewed/twig/products.viewed.html.twig',
+                name: '@Template/products-viewed/twig/products.viewed.html.twig',
                 context: [
                     'products_viewed' => $productsViewed,
                     'current_product_id' => $currentProductId,
@@ -72,7 +67,7 @@ class ProductsViewedExtension extends AbstractExtension
         }
 
         return $twig->render(
-            '@products-viewed/twig/products.viewed.html.twig',
+            name: '@products-viewed/twig/products.viewed.html.twig',
             context: [
                 'products_viewed' => $productsViewed,
                 'current_product_id' => $currentProductId,

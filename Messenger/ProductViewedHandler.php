@@ -26,20 +26,19 @@ declare(strict_types=1);
 namespace BaksDev\Products\Viewed\Messenger;
 
 use BaksDev\Products\Product\Repository\ProductInvariable\ProductInvariableRepository;
-use BaksDev\Products\Viewed\UseCases\NewAnonymous\ViewedAnonymousDTO;
-use BaksDev\Products\Viewed\UseCases\NewAnonymous\ProductViewedAnonymous;
-use BaksDev\Products\Viewed\UseCases\NewAuthenticated\ViewedAuthenticatedDTO;
-use BaksDev\Products\Viewed\UseCases\NewAuthenticated\ProductViewedAuthenticated;
+use BaksDev\Products\Viewed\UseCases\NewAnonymous\ProductViewedAnonymousDTO;
+use BaksDev\Products\Viewed\UseCases\NewAnonymous\ProductViewedAnonymousHandler;
+use BaksDev\Products\Viewed\UseCases\NewAuthenticated\ProductViewedAuthenticatedDTO;
+use BaksDev\Products\Viewed\UseCases\NewAuthenticated\ProductViewedAuthenticatedHandler;
 use BaksDev\Users\User\Type\Id\UserUid;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler(priority: 0)]
-final class ProductViewedHandler
+final readonly class ProductViewedHandler
 {
-
     public function __construct(
-        private ProductViewedAnonymous  $viewedAnonymous,
-        private ProductViewedAuthenticated $viewedAuthenticated,
+        private ProductViewedAnonymousHandler $viewedAnonymous,
+        private ProductViewedAuthenticatedHandler $viewedAuthenticated,
         private ProductInvariableRepository $productInvariableRepository,
     ) {}
 
@@ -52,16 +51,17 @@ final class ProductViewedHandler
             ->modification($message->getProductModificationConst())
             ->find();
 
-        if ($invariable === false) {
+        if($invariable === false)
+        {
             return;
         }
 
         /**
          * Для анонимных данные помещаются в сессию
          */
-        if ($message->getUsr() === false)
+        if($message->getUsr() === false)
         {
-            $anonymousDto = new ViewedAnonymousDTO();
+            $anonymousDto = new ProductViewedAnonymousDTO();
             $anonymousDto->setId($invariable);
 
             $this->viewedAnonymous->addViewedProduct($anonymousDto);
@@ -72,7 +72,7 @@ final class ProductViewedHandler
         /**
          * Для авторизованных данные в БД в products_viewed
          */
-        $authenticatedDto = new ViewedAuthenticatedDTO();
+        $authenticatedDto = new ProductViewedAuthenticatedDTO();
         $authenticatedDto
             ->setId($invariable)
             ->setUsr(new UserUid($message->getUsr()));
