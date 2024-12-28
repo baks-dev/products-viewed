@@ -35,12 +35,12 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpKernel\Event\ControllerArgumentsEvent;
 
 #[AsEventListener(event: ControllerArgumentsEvent::class)]
-final class DetailControllerListener
+final readonly class DetailControllerListener
 {
     public function __construct(
-        private readonly ProductDetailByValueInterface $productDetail,
-        private readonly MessageDispatchInterface $messageDispatch,
-        private readonly Security $security
+        private ProductDetailByValueInterface $productDetail,
+        private MessageDispatchInterface $messageDispatch,
+        private Security $security
     ) {}
 
     public function onKernelControllerArguments(ControllerArgumentsEvent $event): void
@@ -75,6 +75,7 @@ final class DetailControllerListener
                     if($card)
                     {
                         $currentUser = $this->security->getUser();
+
                         $ProductViewedMessage = new ProductViewedMessage(
                             $card['id'],
                             $card['product_offer_const'],

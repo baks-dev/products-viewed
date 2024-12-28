@@ -21,19 +21,31 @@
  *  THE SOFTWARE.
  */
 
-namespace BaksDev\Products\Viewed\Repository\DataUpdate;
+declare(strict_types=1);
+
+namespace BaksDev\Products\Viewed\UseCases\NewAnonymous;
 
 use BaksDev\Products\Product\Type\Invariable\ProductInvariableUid;
-use BaksDev\Users\User\Type\Id\UserUid;
+use Symfony\Component\Validator\Constraints as Assert;
 
-interface DataUpdateInterface
+/** @see ProductViewedAnonymousDTO */
+final class ProductViewedAnonymousDTO
 {
-    public function user(UserUid|string $user): self;
 
-    public function invariable(ProductInvariableUid|string $invariable): self;
+    #[Assert\Uuid]
+    #[Assert\NotBlank]
+    private ProductInvariableUid $id;
 
-    /**
-     * Метод обновляет дату последнего просмотра пользователем продукта
-     */
-    public function update(): bool;
+    public function getId(): ProductInvariableUid
+    {
+        return $this->id;
+    }
+
+    public function setId(ProductInvariableUid $id): self
+    {
+        $this->id = $id;
+
+        return $this;
+    }
+
 }

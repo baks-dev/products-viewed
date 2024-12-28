@@ -21,31 +21,37 @@
  *  THE SOFTWARE.
  */
 
-declare(strict_types=1);
-
 namespace BaksDev\Products\Viewed\UseCases\NewAnonymous;
 
-use BaksDev\Products\Product\Type\Invariable\ProductInvariableUid;
-use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\HttpFoundation\Exception\SessionNotFoundException;
+use Symfony\Component\HttpFoundation\RequestStack;
 
-/** @see ViewedAnonymousDTO */
-final class ViewedAnonymousDTO
+final readonly class ProductViewedAnonymousHandler
 {
+    public function __construct(private RequestStack $requestStack) {}
 
-    #[Assert\Uuid]
-    #[Assert\NotBlank]
-    private ProductInvariableUid $id;
-
-    public function getId(): ProductInvariableUid
+    public function addViewedProduct(ProductViewedAnonymousDTO $dto): void
     {
-        return $this->id;
+        try
+        {
+            $session = $this->requestStack->getSession();
+        }
+        catch(SessionNotFoundException)
+        {
+            return;
+        }
+
+        $viewedProducts = $session->get('viewedProducts') ?? [];
+
+        /**
+         * Для уникальности значений добавляем в начало массива с ключом,
+         * имеющим значение самого элемента
+         */
+        $viewedProducts = [(string)$dto->getId() => (string)$dto->getId()] + $viewedProducts;
+
+        /**
+         * Обновить данные в сессии
+         */
+        $session->set('viewedProducts', $viewedProducts);
     }
-
-    public function setId(ProductInvariableUid $id): self
-    {
-        $this->id = $id;
-
-        return $this;
-    }
-
 }

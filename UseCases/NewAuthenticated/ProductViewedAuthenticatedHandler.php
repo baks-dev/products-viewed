@@ -23,21 +23,21 @@
 namespace BaksDev\Products\Viewed\UseCases\NewAuthenticated;
 
 use BaksDev\Products\Viewed\Entity\ProductsViewed;
-use BaksDev\Products\Viewed\Repository\DataUpdate\DataUpdateInterface;
+use BaksDev\Products\Viewed\Repository\DataUpdate\ProductsViewedDataUpdateInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-class ProductViewedAuthenticated
+final readonly class ProductViewedAuthenticatedHandler
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
         private ValidatorInterface $validator,
-        private DataUpdateInterface $dataUpdate,
+        private ProductsViewedDataUpdateInterface $dataUpdate,
         private LoggerInterface $logger,
     ) {}
 
-    public function addViewedProduct(ViewedAuthenticatedDTO $dto): ProductsViewed|bool
+    public function addViewedProduct(ProductViewedAuthenticatedDTO $dto): ProductsViewed|bool
     {
         $isUpdate = $this->dataUpdate
             ->user($dto->getUsr())

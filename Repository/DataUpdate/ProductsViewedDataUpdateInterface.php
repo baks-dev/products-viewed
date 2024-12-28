@@ -21,31 +21,19 @@
  *  THE SOFTWARE.
  */
 
-namespace BaksDev\Products\Viewed\UseCases\NewAnonymous;
+namespace BaksDev\Products\Viewed\Repository\DataUpdate;
 
-use Symfony\Component\HttpFoundation\RequestStack;
+use BaksDev\Products\Product\Type\Invariable\ProductInvariableUid;
+use BaksDev\Users\User\Type\Id\UserUid;
 
-class ProductViewedAnonymous
+interface ProductsViewedDataUpdateInterface
 {
+    public function user(UserUid|string $user): self;
 
-    public function __construct(
-        private readonly RequestStack $requestStack,
-    )
-    {
+    public function invariable(ProductInvariableUid|string $invariable): self;
 
-    }
-
-    public function addViewedProduct(ViewedAnonymousDTO $dto) {
-
-        $session = $this->requestStack->getSession();
-        if ($session)
-        {
-            $viewedProducts = $session->get('viewedProducts') ?? [];
-            array_unshift($viewedProducts, (string) $dto->getId());
-            /**
-             * Обновить данные в сессии
-             */
-            $session->set('viewedProducts', $viewedProducts);
-        }
-    }
+    /**
+     * Метод обновляет дату последнего просмотра пользователем продукта
+     */
+    public function update(): bool;
 }

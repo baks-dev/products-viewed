@@ -36,7 +36,7 @@ class ProductViewedAnonymousNewTest extends WebTestCase
 {
     private const string URL = '/catalog/new/new_info_url/100/200/300';
 
-    public function testNewAnonymous()
+    public function testNewAnonymous(): void
     {
 
         $client = static::createClient();

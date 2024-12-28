@@ -9,7 +9,7 @@
              style="margin: 0 -0.7rem">
             {% set image_path = '/assets/img/blank.svg' %}
             {% for product_viewed in products_viewed %}
-                {% if product_viewed.product_id != current_product_id %}
+                {% if product_viewed.invariable_id != current_invariable_id %}
                 <a href="{{ path('products-product:user.detail', {
                     category: product_viewed.category_url,
                     url: product_viewed.product_url,
@@ -28,8 +28,6 @@
                         <div>
                             <h3 class="fs-9 text-uppercase fw-bold">
                                 {{ product_viewed.product_name }} {{ product_viewed.modification_postfix }} {{ product_viewed.variation_value }}
-                                {#                            TH201 #}
-                                {#                            195/45 R16 84W #}
                             </h3>
                             <p class="fs-14 fw-bold text-uppercase mb-0 lh-1 d-flex align-items-top gap-1 justify-content-between">
                                 {{ money(product_viewed.price, product_viewed.currency) }}

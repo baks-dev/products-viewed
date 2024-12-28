@@ -29,8 +29,9 @@ use BaksDev\Core\Doctrine\DBALQueryBuilder;
 use BaksDev\Products\Product\Type\Invariable\ProductInvariableUid;
 use BaksDev\Products\Viewed\Entity\ProductsViewed;
 use BaksDev\Users\User\Type\Id\UserUid;
+use InvalidArgumentException;
 
-final class DataUpdateRepository implements DataUpdateInterface
+final class ProductsViewedDataUpdateRepository implements ProductsViewedDataUpdateInterface
 {
     private UserUid|false $user = false;
 
@@ -77,7 +78,7 @@ final class DataUpdateRepository implements DataUpdateInterface
 
         if($this->invariable === false && $this->user === false)
         {
-            throw new \InvalidArgumentException('............');
+            throw new InvalidArgumentException('............');
         }
 
         $dbal = $this->DBALQueryBuilder->createQueryBuilder(self::class);

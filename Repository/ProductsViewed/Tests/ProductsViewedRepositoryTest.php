@@ -55,6 +55,7 @@ class ProductsViewedRepositoryTest extends KernelTestCase
             "modification_value",
             "modification_postfix",
             "modification_article",
+            "product_quantity",
             "product_id",
             "product_image_cdn",
             "product_image_ext",
@@ -84,6 +85,7 @@ class ProductsViewedRepositoryTest extends KernelTestCase
         self::assertTrue(array_key_exists('modification_postfix', $current));
         self::assertTrue(array_key_exists('modification_article', $current));
 
+        self::assertTrue(array_key_exists('product_quantity', $current));
         self::assertTrue(array_key_exists('product_id', $current));
         self::assertTrue(array_key_exists('product_image', $current));
         self::assertTrue(array_key_exists('product_image_cdn', $current));
