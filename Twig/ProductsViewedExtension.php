@@ -48,21 +48,38 @@ final class ProductsViewedExtension extends AbstractExtension
         ];
     }
 
-    public function renderProductsViewed(Environment $twig, $currentProductId): string
+    public function renderProductsViewed(Environment $twig, $currentInvariableId): string
     {
         $currentUser = $this->security->getUser();
         $productsViewed = $currentUser !== null ?
             $this->productsViewedRepository->findUserProductInvariablesViewed($currentUser->getId()) :
             $this->productsViewedRepository->findAnonymousProductInvariablesViewed();
 
-        /** Подключаем если определен пользовательский шаблон */
-        if(file_exists($this->project_dir.'/templates/products-viewed/twig/products.viewed.html.twig'))
+        if ($productsViewed === []) {
+            return '';
+        }
+
+        $templatePath = $this->project_dir.'/templates/products-viewed/twig/products.viewed.html.twig';
+        $srcPath = $this->project_dir.'/src/products-viewed/Resources/view/twig/products.viewed.html.twig';
+
+        /* Подключаем если определен пользовательский шаблон */
+        if(file_exists($templatePath))
         {
             return $twig->render(
                 name: '@Template/products-viewed/twig/products.viewed.html.twig',
                 context: [
                     'products_viewed' => $productsViewed,
-                    'current_product_id' => $currentProductId,
+                    'current_invariable_id' => $currentInvariableId,
+                ]);
+        }
+
+        if(file_exists($srcPath))
+        {
+            return $twig->render(
+                name: '@App/products-viewed/Resources/view/twig/products.viewed.html.twig',
+                context: [
+                    'products_viewed' => $productsViewed,
+                    'current_invariable_id' => $currentInvariableId,
                 ]);
         }
 
@@ -70,7 +87,7 @@ final class ProductsViewedExtension extends AbstractExtension
             name: '@products-viewed/twig/products.viewed.html.twig',
             context: [
                 'products_viewed' => $productsViewed,
-                'current_product_id' => $currentProductId,
+                'current_invariable_id' => $currentInvariableId,
             ]);
     }
 

@@ -34,11 +34,14 @@ use BaksDev\Products\Product\Entity\Info\ProductInfo;
 use BaksDev\Products\Product\Entity\Offers\Image\ProductOfferImage;
 use BaksDev\Products\Product\Entity\Offers\Price\ProductOfferPrice;
 use BaksDev\Products\Product\Entity\Offers\ProductOffer;
+use BaksDev\Products\Product\Entity\Offers\Quantity\ProductOfferQuantity;
 use BaksDev\Products\Product\Entity\Offers\Variation\Image\ProductVariationImage;
 use BaksDev\Products\Product\Entity\Offers\Variation\Modification\Price\ProductModificationPrice;
 use BaksDev\Products\Product\Entity\Offers\Variation\Modification\ProductModification;
+use BaksDev\Products\Product\Entity\Offers\Variation\Modification\Quantity\ProductModificationQuantity;
 use BaksDev\Products\Product\Entity\Offers\Variation\Price\ProductVariationPrice;
 use BaksDev\Products\Product\Entity\Offers\Variation\ProductVariation;
+use BaksDev\Products\Product\Entity\Offers\Variation\Quantity\ProductVariationQuantity;
 use BaksDev\Products\Product\Entity\Photo\ProductPhoto;
 use BaksDev\Products\Product\Entity\Price\ProductPrice;
 use BaksDev\Products\Product\Entity\Product;
@@ -202,6 +205,41 @@ final class ProductsViewedRepository implements ProductsViewedInterface
             );
 
         /**
+         * Наличие
+         */
+        $dbal->leftJoin(
+            'product_variation',
+            ProductVariationQuantity::class,
+            'product_variation_quantity',
+            'product_variation_quantity.variation = product_variation.id'
+        );
+
+        $dbal->leftJoin(
+            'modification',
+            ProductModificationQuantity::class,
+            'product_modification_quantity',
+            'product_modification_quantity.modification = modification.id'
+        );
+
+        $dbal->leftJoin(
+            'product_offer',
+            ProductOfferQuantity::class,
+            'product_offer_quantity',
+            'product_offer_quantity.offer = product_offer.id'
+        );
+
+        $dbal->addSelect("
+           CASE
+             WHEN product_modification_quantity.quantity IS NOT NULL THEN (product_modification_quantity.quantity - product_modification_quantity.reserve)
+             WHEN product_variation_quantity.quantity IS NOT NULL THEN (product_variation_quantity.quantity - product_variation_quantity.reserve)
+             WHEN product_offer_quantity.quantity IS NOT NULL THEN (product_offer_quantity.quantity - product_offer_quantity.reserve)
+             WHEN product_price.quantity  IS NOT NULL THEN (product_price.quantity - product_price.reserve)
+             ELSE 0
+           END AS product_quantity
+          "
+        );
+
+        /**
          * Изображение продукта
          */
         $dbal->leftJoin(
@@ -334,16 +372,18 @@ final class ProductsViewedRepository implements ProductsViewedInterface
          */
         $orderByCase = "CASE invariable.id ";
 
+        $productsCount = 0;
         foreach($viewedProducts as $key => $viewedProduct)
         {
-            $orderByCase .= "WHEN '$viewedProduct' THEN $key ";
+            $orderByCase .= "WHEN '$viewedProduct' THEN $productsCount ";
+            $productsCount++;
         }
         $orderByCase .= " END";
 
         $dbal = $this->builder();
 
         $dbal
-            ->addSelect('invariable.id')
+            ->addSelect('invariable.id as invariable_id')
             ->from(ProductInvariable::class, 'invariable')
             ->where('invariable.id IN (:viewedProducts)')
             ->setParameter('viewedProducts', $viewedProducts, ArrayParameterType::STRING)
@@ -360,7 +400,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
         $dbal = $this->builder();
 
         $dbal
-            ->addSelect('viewed.invariable')
+            ->addSelect('viewed.invariable as invariable_id')
             ->from(ProductsViewed::class, 'viewed')
             ->where('viewed.usr = :usr')
             ->setParameter('usr', $usr, UserUid::TYPE);

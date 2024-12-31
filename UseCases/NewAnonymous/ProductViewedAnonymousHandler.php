@@ -42,7 +42,12 @@ final readonly class ProductViewedAnonymousHandler
         }
 
         $viewedProducts = $session->get('viewedProducts') ?? [];
-        array_unshift($viewedProducts, (string) $dto->getId());
+
+        /**
+         * Для уникальности значений добавляем в начало массива с ключом,
+         * имеющим значение самого элемента
+         */
+        $viewedProducts = [(string)$dto->getId() => (string)$dto->getId()] + $viewedProducts;
 
         /**
          * Обновить данные в сессии
