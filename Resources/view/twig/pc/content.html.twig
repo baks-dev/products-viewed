@@ -28,7 +28,6 @@
                             <div>
                                 <h3 class="fs-12 text-uppercase fw-bold">
                                     {{ product_viewed.product_name }} {{ product_viewed.modification_postfix }} {{ product_viewed.variation_value }}
-
                                 </h3>
                                 <p class="fs-5 fw-bold text-uppercase mb-0 lh-1 d-flex align-items-top gap-1">
                                     {{ money(product_viewed.price, product_viewed.currency) }}
@@ -41,6 +40,7 @@
                     </a>
                 {% endif %}
             {% endfor %}
+
         </div>
     {% endif %}
 </section>
