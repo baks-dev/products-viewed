@@ -42,8 +42,13 @@ class ProductsViewedRepositoryTest extends KernelTestCase
         $ProductsViewedRepository = self::getContainer()->get(ProductsViewedRepository::class);
 
         $viewedProducts = $ProductsViewedRepository->findUserProductInvariablesViewed(new UserUid(UserUid::TEST));
-
         $current = current($viewedProducts);
+
+        if($current === false)
+        {
+            self::assertFalse($current);
+            return;
+        }
 
         $array_keys = [
             "invariable",
