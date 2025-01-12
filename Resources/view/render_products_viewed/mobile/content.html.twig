@@ -1,0 +1,45 @@
+<section class="container pt-3">
+    {# Здесь в массиве просмотренных товаров больше 1 товара и далее исключается текущий #}
+    {% if products_viewed|length > 1 %}
+        <h2 class="fs-6 text-uppercase fw-bold mb-2">
+            вы смотрели
+        </h2>
+
+        <div class="d-flex justify-content-between p-3 bg-warning-subtle gap-3 overflow-x-scroll scroll-none"
+             style="margin: 0 -0.7rem">
+            {% set image_path = '/assets/img/blank.svg' %}
+            {% for product_viewed in products_viewed %}
+                {% if product_viewed.invariable_id != current_invariable_id %}
+                    <a href="{{ path('products-product:user.detail', {
+                        category: product_viewed.category_url,
+                        url: product_viewed.product_url,
+                        offer : product_viewed.offer_value,
+                        variation : product_viewed.variation_value,
+                        modification : product_viewed.modification_value
+                    }) }}" class="text-black text-decoration-none">
+                        <div class="d-flex flex-column align-items-center  gap-3">
+                            {# Сформировать ссылку на изображение #}
+                            {% if product_viewed.product_image is defined and product_viewed.product_image is not null %}
+                                {% set image_path = cdn_image_path(product_viewed.product_image, product_viewed.product_image_ext, product_viewed.product_image_cdn) %}
+                            {% endif %}
+                            <div class="pe-3"><img class="rounded-4" src="{{ image_path }}"
+                                                   alt="{{ product_viewed.product_name }}"
+                                                   style="width: 85px;"></div>
+                            <div>
+                                <h3 class="fs-9 text-uppercase fw-bold">
+                                    {{ product_viewed.product_name }} {{ product_viewed.modification_postfix }} {{ product_viewed.variation_value }}
+                                </h3>
+                                <p class="fs-14 fw-bold text-uppercase mb-0 lh-1 d-flex align-items-top gap-1 justify-content-between">
+                                    {{ money(product_viewed.price, product_viewed.currency) }}
+                                    {% if product_viewed.old_price != 0 %}
+                                        <span class="fs-8 fw-bold text-danger"><del>{{ money(product_viewed.old_price, product_viewed.currency) }}</del></span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </a>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+</section>
