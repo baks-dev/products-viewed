@@ -61,7 +61,7 @@ final class ProductsViewedExtension extends AbstractExtension
             return '';
         }
 
-        $path = $this->template->extends('@products-viewed:twig/products.viewed.html.twig');
+        $path = $this->template->extends('@products-viewed:render_products_viewed/template.html.twig');
 
         return $twig->render
         (
