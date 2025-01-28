@@ -368,28 +368,32 @@ final class ProductsViewedRepository implements ProductsViewedInterface
 
         $viewedProducts = $this->session->get('viewedProducts') ?? [];
 
-        /**
-         * Создание 'CASE' строки для сортировки по $viewedProducts
-         */
-        $orderByCase = "CASE invariable.id ";
-
-        $productsCount = 0;
-        foreach($viewedProducts as $key => $viewedProduct)
-        {
-            $orderByCase .= "WHEN '$viewedProduct' THEN $productsCount ";
-            $productsCount++;
-        }
-
-        $orderByCase .= " END";
-
         $dbal = $this->builder();
 
         $dbal
             ->addSelect('invariable.id as invariable_id')
             ->from(ProductInvariable::class, 'invariable')
             ->where('invariable.id IN (:viewedProducts)')
-            ->setParameter('viewedProducts', $viewedProducts, ArrayParameterType::STRING)
-            ->addOrderBy($orderByCase);
+            ->setParameter('viewedProducts', $viewedProducts, ArrayParameterType::STRING);
+
+        if(false === empty($viewedProducts))
+        {
+            /**
+             * Создание 'CASE' строки для сортировки по $viewedProducts
+             */
+            $orderByCase = "CASE invariable.id ";
+
+            $productsCount = 0;
+            foreach($viewedProducts as $key => $viewedProduct)
+            {
+                $orderByCase .= "WHEN '$viewedProduct' THEN $productsCount ";
+                $productsCount++;
+            }
+
+            $orderByCase .= " END";
+
+            $dbal->addOrderBy($orderByCase);
+        }
 
         return $dbal->fetchAllAssociative();
     }
