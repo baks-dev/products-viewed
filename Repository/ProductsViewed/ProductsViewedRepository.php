@@ -365,6 +365,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
         {
             $this->session = $this->requestStack->getSession();
         }
+
         $viewedProducts = $this->session->get('viewedProducts') ?? [];
 
         /**
@@ -378,6 +379,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
             $orderByCase .= "WHEN '$viewedProduct' THEN $productsCount ";
             $productsCount++;
         }
+
         $orderByCase .= " END";
 
         $dbal = $this->builder();

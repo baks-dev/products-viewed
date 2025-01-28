@@ -75,10 +75,9 @@ final class ProductsViewedDataUpdateRepository implements ProductsViewedDataUpda
      */
     public function update(): bool
     {
-
-        if($this->invariable === false && $this->user === false)
+        if($this->invariable === false || $this->user === false)
         {
-            throw new InvalidArgumentException('............');
+            throw new InvalidArgumentException('Неверный аргумент invariable либо user');
         }
 
         $dbal = $this->DBALQueryBuilder->createQueryBuilder(self::class);

@@ -86,7 +86,7 @@ final readonly class DetailControllerListener
 
                         $this->messageDispatch->dispatch(
                             $ProductViewedMessage,
-                            transport: $currentUser ? 'products-product' : null
+                            transport: $currentUser ? 'products-viewed' : null
                         );
                     }
                 }

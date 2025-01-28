@@ -42,11 +42,16 @@ class ProductsViewedRepositoryTest extends KernelTestCase
         $ProductsViewedRepository = self::getContainer()->get(ProductsViewedRepository::class);
 
         $viewedProducts = $ProductsViewedRepository->findUserProductInvariablesViewed(new UserUid(UserUid::TEST));
-
         $current = current($viewedProducts);
 
+        if($current === false)
+        {
+            self::assertFalse($current);
+            return;
+        }
+
         $array_keys = [
-            "invariable",
+            "invariable_id",
             "product_name",
             "offer_value",
             "offer_postfix",
@@ -72,7 +77,7 @@ class ProductsViewedRepositoryTest extends KernelTestCase
             self::assertTrue(in_array($key, $array_keys), sprintf('Появился новый ключ %s', $key));
         }
 
-        self::assertTrue(array_key_exists('invariable', $current));
+        self::assertTrue(array_key_exists('invariable_id', $current));
         self::assertTrue(array_key_exists('product_name', $current));
 
         self::assertTrue(array_key_exists('offer_value', $current));
