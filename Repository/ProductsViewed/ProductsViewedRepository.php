@@ -368,19 +368,28 @@ final class ProductsViewedRepository implements ProductsViewedInterface
 
         $viewedProducts = $this->session->get('viewedProducts') ?? [];
 
+        if(empty($viewedProducts))
+        {
+            return [];
+        }
+
         /**
          * Создание 'CASE' строки для сортировки по $viewedProducts
          */
         $orderByCase = "CASE invariable.id ";
 
         $productsCount = 0;
-        foreach($viewedProducts as $key => $viewedProduct)
+        foreach($viewedProducts as $viewedProduct)
         {
             $orderByCase .= "WHEN '$viewedProduct' THEN $productsCount ";
             $productsCount++;
         }
 
         $orderByCase .= " END";
+
+        /**
+         * Применяем сортировку $viewedProducts к результату запроса
+         */
 
         $dbal = $this->builder();
 
