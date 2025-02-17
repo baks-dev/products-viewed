@@ -32,11 +32,11 @@ interface ProductsViewedInterface
     /**
      * Получение данных о продукте для анонимного пользователя
      */
-    public function findAnonymousProductInvariablesViewed(): array|bool;
+    public function findAnonymousProductInvariablesViewed(): array|false;
 
     /**
      * Получение данных о продукте для авторизованного пользователя
      */
-    public function findUserProductInvariablesViewed(?UserUid $usr): array|bool;
+    public function findUserProductInvariablesViewed(?UserUid $usr): array|false;
 
 }

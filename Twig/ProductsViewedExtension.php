@@ -56,7 +56,7 @@ final class ProductsViewedExtension extends AbstractExtension
             $this->productsViewedRepository->findUserProductInvariablesViewed($currentUser->getId()) :
             $this->productsViewedRepository->findAnonymousProductInvariablesViewed();
 
-        if($productsViewed === [])
+        if(false === $productsViewed)
         {
             return '';
         }

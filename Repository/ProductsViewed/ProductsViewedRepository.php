@@ -359,7 +359,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
     /**
      * Получение данных о продукте для анонимного пользователя
      */
-    public function findAnonymousProductInvariablesViewed(): array|bool
+    public function findAnonymousProductInvariablesViewed(): array|false
     {
         if($this->session === false)
         {
@@ -370,7 +370,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
 
         if(empty($viewedProducts))
         {
-            return [];
+            return false;
         }
 
         /**
@@ -379,6 +379,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
         $orderByCase = "CASE invariable.id ";
 
         $productsCount = 0;
+
         foreach($viewedProducts as $viewedProduct)
         {
             $orderByCase .= "WHEN '$viewedProduct' THEN $productsCount ";
@@ -400,13 +401,13 @@ final class ProductsViewedRepository implements ProductsViewedInterface
             ->setParameter('viewedProducts', $viewedProducts, ArrayParameterType::STRING)
             ->addOrderBy($orderByCase);
 
-        return $dbal->fetchAllAssociative();
+        return $dbal->fetchAllAssociative() ?: false;
     }
 
     /**
      * Получение данных о продукте для авторизованного пользователя
      */
-    public function findUserProductInvariablesViewed(?UserUid $usr): array|bool
+    public function findUserProductInvariablesViewed(?UserUid $usr): array|false
     {
         $dbal = $this->builder();
 
@@ -426,7 +427,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
 
         $dbal->orderBy('viewed.viewed_date', 'DESC');
 
-        return $dbal->fetchAllAssociative();
+        return $dbal->fetchAllAssociative() ?: false;
     }
 
 }
