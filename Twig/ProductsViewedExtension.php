@@ -72,5 +72,4 @@ final class ProductsViewedExtension extends AbstractExtension
             ]
         );
     }
-
 }
