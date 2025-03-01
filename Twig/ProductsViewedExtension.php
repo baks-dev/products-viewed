@@ -23,9 +23,9 @@
 
 namespace BaksDev\Products\Viewed\Twig;
 
-use BaksDev\Core\Twig\TemplateExtension;
 use BaksDev\Products\Viewed\Repository\ProductsViewed\ProductsViewedRepository;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Twig\Environment;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
@@ -33,7 +33,7 @@ use Twig\TwigFunction;
 final class ProductsViewedExtension extends AbstractExtension
 {
     public function __construct(
-        private readonly TemplateExtension $template,
+        #[Autowire('%kernel.project_dir%')] readonly string $project_dir,
         private readonly ProductsViewedRepository $productsViewedRepository,
         private readonly Security $security
     ) {}
@@ -48,28 +48,47 @@ final class ProductsViewedExtension extends AbstractExtension
         ];
     }
 
-    public function renderProductsViewed(Environment $twig, mixed $currentInvariableId = null): string
+    public function renderProductsViewed(Environment $twig, $currentInvariableId): string
     {
         $currentUser = $this->security->getUser();
-
         $productsViewed = $currentUser !== null ?
             $this->productsViewedRepository->findUserProductInvariablesViewed($currentUser->getId()) :
             $this->productsViewedRepository->findAnonymousProductInvariablesViewed();
 
-        if(false === $productsViewed)
-        {
+        if ($productsViewed === []) {
             return '';
         }
 
-        $path = $this->template->extends('@products-viewed:render_products_viewed/template.html.twig');
+        $templatePath = $this->project_dir.'/templates/products-viewed/twig/products.viewed.html.twig';
+        $srcPath = $this->project_dir.'/src/products-viewed/Resources/view/twig/products.viewed.html.twig';
 
-        return $twig->render
-        (
-            name: $path,
+        /* Подключаем если определен пользовательский шаблон */
+        if(file_exists($templatePath))
+        {
+            return $twig->render(
+                name: '@Template/products-viewed/twig/products.viewed.html.twig',
+                context: [
+                    'products_viewed' => $productsViewed,
+                    'current_invariable_id' => $currentInvariableId,
+                ]);
+        }
+
+        if(file_exists($srcPath))
+        {
+            return $twig->render(
+                name: '@App/products-viewed/Resources/view/twig/products.viewed.html.twig',
+                context: [
+                    'products_viewed' => $productsViewed,
+                    'current_invariable_id' => $currentInvariableId,
+                ]);
+        }
+
+        return $twig->render(
+            name: '@products-viewed/twig/products.viewed.html.twig',
             context: [
                 'products_viewed' => $productsViewed,
                 'current_invariable_id' => $currentInvariableId,
-            ]
-        );
+            ]);
     }
+
 }
