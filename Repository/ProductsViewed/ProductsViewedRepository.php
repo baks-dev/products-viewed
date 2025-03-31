@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2024.  Baks.dev <admin@baks.dev>
+ *  Copyright 2025.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,7 @@
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
+ *
  */
 
 declare(strict_types=1);
@@ -28,6 +29,9 @@ namespace BaksDev\Products\Viewed\Repository\ProductsViewed;
 use BaksDev\Core\Doctrine\DBALQueryBuilder;
 use BaksDev\Products\Category\Entity\CategoryProduct;
 use BaksDev\Products\Category\Entity\Info\CategoryProductInfo;
+use BaksDev\Products\Category\Entity\Offers\CategoryProductOffers;
+use BaksDev\Products\Category\Entity\Offers\Variation\CategoryProductVariation;
+use BaksDev\Products\Category\Entity\Offers\Variation\Modification\CategoryProductModification;
 use BaksDev\Products\Product\Entity\Category\ProductCategory;
 use BaksDev\Products\Product\Entity\Event\ProductEvent;
 use BaksDev\Products\Product\Entity\Info\ProductInfo;
@@ -36,6 +40,7 @@ use BaksDev\Products\Product\Entity\Offers\Price\ProductOfferPrice;
 use BaksDev\Products\Product\Entity\Offers\ProductOffer;
 use BaksDev\Products\Product\Entity\Offers\Quantity\ProductOfferQuantity;
 use BaksDev\Products\Product\Entity\Offers\Variation\Image\ProductVariationImage;
+use BaksDev\Products\Product\Entity\Offers\Variation\Modification\Image\ProductModificationImage;
 use BaksDev\Products\Product\Entity\Offers\Variation\Modification\Price\ProductModificationPrice;
 use BaksDev\Products\Product\Entity\Offers\Variation\Modification\ProductModification;
 use BaksDev\Products\Product\Entity\Offers\Variation\Modification\Quantity\ProductModificationQuantity;
@@ -136,16 +141,9 @@ final class ProductsViewedRepository implements ProductsViewedInterface
             );
 
 
+        /** OFFER */
         $dbal
-            ->leftJoin(
-                'product',
-                ProductPrice::class,
-                'product_price',
-                'product_price.event = product.event'
-            );
-
-        $dbal
-            ->addSelect('product_offer.value AS offer_value') // 16
+            ->addSelect('product_offer.value AS offer_value')
             ->addSelect('product_offer.postfix AS offer_postfix')
             ->leftJoin(
                 'invariable',
@@ -154,9 +152,19 @@ final class ProductsViewedRepository implements ProductsViewedInterface
                 'product_offer.event = product.event AND product_offer.const = invariable.offer'
             );
 
-
+        /**  Тип торгового предложения */
         $dbal
-            ->addSelect('product_variation.value AS variation_value') // 255
+            ->addSelect('category_offer.reference AS offer_reference')
+            ->leftJoin(
+                'product_offer',
+                CategoryProductOffers::class,
+                'category_offer',
+                'category_offer.id = product_offer.category_offer'
+            );
+
+        /** VARIATION */
+        $dbal
+            ->addSelect('product_variation.value AS variation_value')
             ->addSelect('product_variation.postfix AS variation_postfix')
             ->leftJoin(
                 'product_offer',
@@ -165,8 +173,19 @@ final class ProductsViewedRepository implements ProductsViewedInterface
                 'product_variation.offer = product_offer.id AND product_variation.const = invariable.variation'
             );
 
+        /** Тип множественного варианта */
         $dbal
-            ->addSelect('modification.value AS modification_value') // 35
+            ->addSelect('category_variation.reference as variation_reference')
+            ->leftJoin(
+                'product_variation',
+                CategoryProductVariation::class,
+                'category_variation',
+                'category_variation.id = product_variation.category_variation'
+            );
+
+        /** MODIFICATION */
+        $dbal
+            ->addSelect('modification.value AS modification_value')
             ->addSelect('modification.postfix AS modification_postfix')
             ->addSelect('modification.article AS modification_article')
             ->leftJoin(
@@ -176,9 +195,26 @@ final class ProductsViewedRepository implements ProductsViewedInterface
                 'modification.variation = product_variation.id AND modification.const = invariable.modification'
             );
 
+        /** Тип модификации множественного варианта */
+        $dbal
+            ->addSelect('category_modification.reference as modification_reference')
+            ->leftJoin(
+                'modification',
+                CategoryProductModification::class,
+                'category_modification',
+                'category_modification.id = modification.category_modification'
+            );
+
         /**
          * Стоимость продукта
          */
+        $dbal->leftJoin(
+            'product',
+            ProductPrice::class,
+            'product_price',
+            'product_price.event = product.event'
+        );
+
         $dbal
             ->leftJoin(
                 'product_offer',
@@ -195,7 +231,6 @@ final class ProductsViewedRepository implements ProductsViewedInterface
                 'variation_price.variation = product_variation.id'
             );
 
-
         $dbal
             ->leftJoin(
                 'modification',
@@ -208,6 +243,13 @@ final class ProductsViewedRepository implements ProductsViewedInterface
          * Наличие
          */
         $dbal->leftJoin(
+            'product_offer',
+            ProductOfferQuantity::class,
+            'product_offer_quantity',
+            'product_offer_quantity.offer = product_offer.id'
+        );
+
+        $dbal->leftJoin(
             'product_variation',
             ProductVariationQuantity::class,
             'product_variation_quantity',
@@ -219,13 +261,6 @@ final class ProductsViewedRepository implements ProductsViewedInterface
             ProductModificationQuantity::class,
             'product_modification_quantity',
             'product_modification_quantity.modification = modification.id'
-        );
-
-        $dbal->leftJoin(
-            'product_offer',
-            ProductOfferQuantity::class,
-            'product_offer_quantity',
-            'product_offer_quantity.offer = product_offer.id'
         );
 
         $dbal->addSelect("
@@ -251,21 +286,31 @@ final class ProductsViewedRepository implements ProductsViewedInterface
 
         $dbal->leftJoin(
             'product_offer',
+            ProductOfferImage::class,
+            'product_offer_images',
+            'product_offer_images.offer = product_offer.id AND product_offer_images.root = true'
+        );
+
+        $dbal->leftJoin(
+            'product_offer',
             ProductVariationImage::class,
             'product_variation_image',
             'product_variation_image.variation = product_variation.id AND product_variation_image.root = true'
         );
 
         $dbal->leftJoin(
-            'product_offer',
-            ProductOfferImage::class,
-            'product_offer_images',
-            'product_offer_images.offer = product_offer.id AND product_offer_images.root = true'
+            'modification',
+            ProductModificationImage::class,
+            'product_modification_image',
+            'product_modification_image.modification = modification.id AND product_modification_image.root = true'
         );
 
         $dbal->addSelect(
             "
 			CASE
+			   WHEN product_modification_image.name IS NOT NULL 
+			   THEN CONCAT ( '/upload/".$dbal->table(ProductModificationImage::class)."' , '/', product_modification_image.name)
+			
 			   WHEN product_variation_image.name IS NOT NULL 
 			   THEN CONCAT ( '/upload/".$dbal->table(ProductVariationImage::class)."' , '/', product_variation_image.name)
 			   
@@ -283,6 +328,9 @@ final class ProductsViewedRepository implements ProductsViewedInterface
         /** Флаг загрузки файла CDN */
         $dbal->addSelect("
 			CASE
+			   WHEN product_modification_image.name IS NOT NULL 
+			   THEN product_modification_image.ext
+			
 			   WHEN product_variation_image.name IS NOT NULL 
 			   THEN product_variation_image.ext
 			   
@@ -300,6 +348,9 @@ final class ProductsViewedRepository implements ProductsViewedInterface
         /** Флаг загрузки файла CDN */
         $dbal->addSelect("
 			CASE
+			   WHEN product_modification_image.name IS NOT NULL 
+			   THEN product_modification_image.cdn
+			
 			   WHEN product_variation_image.name IS NOT NULL 
 			   THEN product_variation_image.cdn
 					
@@ -313,31 +364,29 @@ final class ProductsViewedRepository implements ProductsViewedInterface
 			END AS product_image_cdn
 		");
 
-        /**
-         * Цена
-         */
-        $dbal
-            ->addSelect('
-            COALESCE(
-                modification_price.price,
-                variation_price.price,
-                offer_price.price,
-                product_price.price,
+        /** Цена */
+        $dbal->addSelect('
+			COALESCE(
+                NULLIF(modification_price.price, 0), 
+                NULLIF(variation_price.price, 0), 
+                NULLIF(offer_price.price, 0), 
+                NULLIF(product_price.price, 0),
                 0
             ) AS price
-        ');
+		');
 
-        $dbal
-            ->addSelect('
-            COALESCE(
-                modification_price.old,
-                variation_price.old,
-                offer_price.old,
-                product_price.old,
+        /** Старая цена */
+        $dbal->addSelect('
+			COALESCE(
+                NULLIF(modification_price.old, 0), 
+                NULLIF(variation_price.old, 0), 
+                NULLIF(offer_price.old, 0), 
+                NULLIF(product_price.old, 0),
                 0
             ) AS old_price
-        ');
+		');
 
+        /** Валюта */
         $dbal
             ->addSelect('
             COALESCE(
