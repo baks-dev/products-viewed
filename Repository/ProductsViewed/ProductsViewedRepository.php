@@ -359,7 +359,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
     /**
      * Получение данных о продукте для анонимного пользователя
      */
-    public function findAnonymousProductInvariablesViewed(): array|bool
+    public function findAnonymousProductInvariablesViewed(): array|false
     {
         if($this->session === false)
         {
@@ -368,40 +368,46 @@ final class ProductsViewedRepository implements ProductsViewedInterface
 
         $viewedProducts = $this->session->get('viewedProducts') ?? [];
 
+        if(empty($viewedProducts))
+        {
+            return false;
+        }
+
+        /**
+         * Создание 'CASE' строки для сортировки по $viewedProducts
+         */
+        $orderByCase = "CASE invariable.id ";
+
+        $productsCount = 0;
+
+        foreach($viewedProducts as $viewedProduct)
+        {
+            $orderByCase .= "WHEN '$viewedProduct' THEN $productsCount ";
+            $productsCount++;
+        }
+
+        $orderByCase .= " END";
+
+        /**
+         * Применяем сортировку $viewedProducts к результату запроса
+         */
+
         $dbal = $this->builder();
 
         $dbal
             ->addSelect('invariable.id as invariable_id')
             ->from(ProductInvariable::class, 'invariable')
             ->where('invariable.id IN (:viewedProducts)')
-            ->setParameter('viewedProducts', $viewedProducts, ArrayParameterType::STRING);
+            ->setParameter('viewedProducts', $viewedProducts, ArrayParameterType::STRING)
+            ->addOrderBy($orderByCase);
 
-        if(false === empty($viewedProducts))
-        {
-            /**
-             * Создание 'CASE' строки для сортировки по $viewedProducts
-             */
-            $orderByCase = "CASE invariable.id ";
-
-            $productsCount = 0;
-            foreach($viewedProducts as $key => $viewedProduct)
-            {
-                $orderByCase .= "WHEN '$viewedProduct' THEN $productsCount ";
-                $productsCount++;
-            }
-
-            $orderByCase .= " END";
-
-            $dbal->addOrderBy($orderByCase);
-        }
-
-        return $dbal->fetchAllAssociative();
+        return $dbal->fetchAllAssociative() ?: false;
     }
 
     /**
      * Получение данных о продукте для авторизованного пользователя
      */
-    public function findUserProductInvariablesViewed(?UserUid $usr): array|bool
+    public function findUserProductInvariablesViewed(?UserUid $usr): array|false
     {
         $dbal = $this->builder();
 
@@ -421,7 +427,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
 
         $dbal->orderBy('viewed.viewed_date', 'DESC');
 
-        return $dbal->fetchAllAssociative();
+        return $dbal->fetchAllAssociative() ?: false;
     }
 
 }
