@@ -46,7 +46,6 @@ class ProductsViewed
     #[ORM\Column(type: ProductInvariableUid::TYPE)]
     private ProductInvariableUid $invariable;
 
-
     /** ID пользователя  */
     #[Assert\NotBlank]
     #[Assert\Uuid]

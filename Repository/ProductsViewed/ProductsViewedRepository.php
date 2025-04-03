@@ -121,8 +121,10 @@ final class ProductsViewedRepository implements ProductsViewedInterface
             'product',
             ProductCategory::class,
             'product_event_category',
-            'product_event_category.event = product.event AND product_event_category.root = true'
-        );
+            '
+                product_event_category.event = product.event AND 
+                product_event_category.root = true
+            ');
 
         $dbal->join(
             'product_event_category',
@@ -149,8 +151,10 @@ final class ProductsViewedRepository implements ProductsViewedInterface
                 'invariable',
                 ProductOffer::class,
                 'product_offer',
-                'product_offer.event = product.event AND product_offer.const = invariable.offer'
-            );
+                '
+                    product_offer.event = product.event AND 
+                    product_offer.const = invariable.offer
+                ');
 
         /**  Тип торгового предложения */
         $dbal
@@ -170,8 +174,10 @@ final class ProductsViewedRepository implements ProductsViewedInterface
                 'product_offer',
                 ProductVariation::class,
                 'product_variation',
-                'product_variation.offer = product_offer.id AND product_variation.const = invariable.variation'
-            );
+                '
+                    product_variation.offer = product_offer.id AND 
+                    product_variation.const = invariable.variation
+                ');
 
         /** Тип множественного варианта */
         $dbal
@@ -192,8 +198,10 @@ final class ProductsViewedRepository implements ProductsViewedInterface
                 'product_variation',
                 ProductModification::class,
                 'modification',
-                'modification.variation = product_variation.id AND modification.const = invariable.modification'
-            );
+                '
+                    modification.variation = product_variation.id AND 
+                    modification.const = invariable.modification
+                ');
 
         /** Тип модификации множественного варианта */
         $dbal
@@ -265,10 +273,18 @@ final class ProductsViewedRepository implements ProductsViewedInterface
 
         $dbal->addSelect("
            CASE
-             WHEN product_modification_quantity.quantity IS NOT NULL THEN (product_modification_quantity.quantity - product_modification_quantity.reserve)
-             WHEN product_variation_quantity.quantity IS NOT NULL THEN (product_variation_quantity.quantity - product_variation_quantity.reserve)
-             WHEN product_offer_quantity.quantity IS NOT NULL THEN (product_offer_quantity.quantity - product_offer_quantity.reserve)
-             WHEN product_price.quantity  IS NOT NULL THEN (product_price.quantity - product_price.reserve)
+             WHEN product_modification_quantity.quantity IS NOT NULL 
+             THEN (product_modification_quantity.quantity - product_modification_quantity.reserve)
+             
+             WHEN product_variation_quantity.quantity IS NOT NULL 
+             THEN (product_variation_quantity.quantity - product_variation_quantity.reserve)
+             
+             WHEN product_offer_quantity.quantity IS NOT NULL 
+             THEN (product_offer_quantity.quantity - product_offer_quantity.reserve)
+             
+             WHEN product_price.quantity  IS NOT NULL 
+             THEN (product_price.quantity - product_price.reserve)
+             
              ELSE 0
            END AS product_quantity
           "
@@ -398,8 +414,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
         ');
 
 
-        $dbal
-            ->setMaxResults(self::VIEWED_PRODUCTS_LIMIT);
+        $dbal->setMaxResults(self::VIEWED_PRODUCTS_LIMIT);
 
         return $dbal;
     }
@@ -425,17 +440,17 @@ final class ProductsViewedRepository implements ProductsViewedInterface
         /**
          * Создание 'CASE' строки для сортировки по $viewedProducts
          */
-        $orderByCase = "CASE invariable.id ";
+        $orderByCase = " CASE invariable.id ";
 
         $productsCount = 0;
 
         foreach($viewedProducts as $viewedProduct)
         {
-            $orderByCase .= "WHEN '$viewedProduct' THEN $productsCount ";
+            $orderByCase .= " WHEN '$viewedProduct' THEN $productsCount ";
             $productsCount++;
         }
 
-        $orderByCase .= " END";
+        $orderByCase .= " END ";
 
         /**
          * Применяем сортировку $viewedProducts к результату запроса
@@ -447,10 +462,16 @@ final class ProductsViewedRepository implements ProductsViewedInterface
             ->addSelect('invariable.id as invariable_id')
             ->from(ProductInvariable::class, 'invariable')
             ->where('invariable.id IN (:viewedProducts)')
-            ->setParameter('viewedProducts', $viewedProducts, ArrayParameterType::STRING)
+            ->setParameter(
+                key: 'viewedProducts',
+                value: $viewedProducts,
+                type: ArrayParameterType::STRING
+            )
             ->addOrderBy($orderByCase);
 
-        return $dbal->fetchAllAssociative() ?: false;
+        return $dbal
+            ->enableCache('products-viewed')
+            ->fetchAllAssociative() ?: false;
     }
 
     /**
@@ -464,7 +485,11 @@ final class ProductsViewedRepository implements ProductsViewedInterface
             ->addSelect('viewed.invariable as invariable_id')
             ->from(ProductsViewed::class, 'viewed')
             ->where('viewed.usr = :usr')
-            ->setParameter('usr', $usr, UserUid::TYPE);
+            ->setParameter(
+                key: 'usr',
+                value: $usr,
+                type: UserUid::TYPE
+            );
 
         $dbal
             ->leftJoin(

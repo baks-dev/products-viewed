@@ -32,7 +32,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final class ProductViewedAuthenticatedDTO
 {
-
     #[Assert\Uuid]
     #[Assert\NotBlank]
     private ProductInvariableUid $id;

@@ -23,21 +23,28 @@
 
 namespace BaksDev\Products\Viewed\UseCases\NewAuthenticated;
 
+use BaksDev\Core\Entity\AbstractHandler;
+use BaksDev\Core\Messenger\MessageDispatchInterface;
+use BaksDev\Core\Validator\ValidatorCollectionInterface;
+use BaksDev\Files\Resources\Upload\File\FileUploadInterface;
+use BaksDev\Files\Resources\Upload\Image\ImageUploadInterface;
 use BaksDev\Products\Viewed\Entity\ProductsViewed;
 use BaksDev\Products\Viewed\Repository\DataUpdate\ProductsViewedDataUpdateInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\Attribute\Target;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-final readonly class ProductViewedAuthenticatedHandler
+final class ProductViewedAuthenticatedHandler extends AbstractHandler
 {
     public function __construct(
-        #[Target('productsViewedLogger')] private LoggerInterface $logger,
-        private EntityManagerInterface $entityManager,
-        private ValidatorInterface $validator,
-        private ProductsViewedDataUpdateInterface $dataUpdate,
-    ) {}
+        private readonly ProductsViewedDataUpdateInterface $dataUpdate,
+        EntityManagerInterface $entityManager,
+        MessageDispatchInterface $messageDispatch,
+        ValidatorCollectionInterface $validatorCollection,
+        ImageUploadInterface $imageUpload,
+        FileUploadInterface $fileUpload,
+    )
+    {
+        parent::__construct($entityManager, $messageDispatch, $validatorCollection, $imageUpload, $fileUpload);
+    }
 
     public function addViewedProduct(ProductViewedAuthenticatedDTO $dto): ProductsViewed|bool
     {
@@ -51,23 +58,22 @@ final readonly class ProductViewedAuthenticatedHandler
             return true;
         }
 
-        $ProductsViewed = new ProductsViewed();
-        $ProductsViewed
+        $ProductsViewed = new ProductsViewed()
             ->setUsr($dto->getUsr())
             ->setInvariable($dto->getId());
 
-        $errors = $this->validator->validate($ProductsViewed);
+        $this->validatorCollection->add($ProductsViewed);
 
-        if(count($errors) > 0)
+        if($this->validatorCollection->isInvalid())
         {
-            $this->logger->critical((string) $errors);
             return false;
         }
 
-        $this->entityManager->persist($ProductsViewed);
-        $this->entityManager->flush();
+        $this->persist($ProductsViewed);
+        $this->flush();
+
+        $this->messageDispatch->addClearCacheOther('products-viewed');
 
         return $ProductsViewed;
-
     }
 }
