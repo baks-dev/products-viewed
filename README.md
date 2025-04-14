@@ -1,4 +1,4 @@
-# BaksDev Product
+# BaksDev Product Viewed
 
 [![Version](https://img.shields.io/badge/version-7.2.7-blue)](https://github.com/baks-dev/products-viewed/releases)
 ![php 8.4+](https://img.shields.io/badge/php-min%208.4-red.svg)
