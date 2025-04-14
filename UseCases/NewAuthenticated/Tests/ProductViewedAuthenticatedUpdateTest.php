@@ -31,6 +31,7 @@ use BaksDev\Products\Viewed\Entity\ProductsViewed;
 use BaksDev\Products\Viewed\UseCases\NewAuthenticated\ProductViewedAuthenticatedDTO;
 use BaksDev\Products\Viewed\UseCases\NewAuthenticated\ProductViewedAuthenticatedHandler;
 use BaksDev\Users\User\Type\Id\UserUid;
+use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
@@ -38,65 +39,54 @@ use Symfony\Component\DependencyInjection\Attribute\When;
 
 /**
  * @group products-viewed
+ * @depends BaksDev\Products\Viewed\UseCases\NewAuthenticated\Tests\ProductViewedAuthenticatedNewTest::class
+ * @see     ProductViewedAuthenticatedNewTest
  */
 #[When(env: 'test')]
 class ProductViewedAuthenticatedUpdateTest extends KernelTestCase
 {
-    public static function setUpBeforeClass(): void
-    {
-        ProductsProductNewTest::setUpBeforeClass();
-
-        /** @var EntityManagerInterface $em */
-        $em = self::getContainer()->get(EntityManagerInterface::class);
-
-        $main = $em->getRepository(ProductsViewed::class)
-            ->findOneBy(['usr' => UserUid::TEST]);
-
-        if($main)
-        {
-            $em->remove($main);
-        }
-
-        $em->flush();
-        $em->clear();
-    }
-
     public function testUseCaseUpdate(): void
     {
         /**
          * Создать тестовую запись
          */
-        $ProductsProductNewTest = new ProductsProductNewTest();
-        $ProductsProductNewTest->testUseCase();
+        //$ProductsProductNewTest = new ProductsProductNewTest();
+        ///$ProductsProductNewTest->testUseCase();
 
         /** @see ProductViewedAuthenticatedDTO */
-        $ViewedAuthenticatedDTO = new ProductViewedAuthenticatedDTO();
+        //$ViewedAuthenticatedDTO = new ProductViewedAuthenticatedDTO();
 
-        $productIvariableUid = new ProductInvariableUid();
-        $ViewedAuthenticatedDTO
-            ->setId($productIvariableUid)
-            ->setUsr(new UserUid());
+
+        ///$ViewedAuthenticatedDTO
+        //    ->setId(new ProductInvariableUid())
+        //    ->setUsr(new UserUid());
 
         /** @var ProductViewedAuthenticatedHandler $ProductViewedAuthenticated */
-        $ProductViewedAuthenticated = self::getContainer()->get(ProductViewedAuthenticatedHandler::class);
-        $ProductViewedAuthenticated->addViewedProduct($ViewedAuthenticatedDTO);
+        //$ProductViewedAuthenticated = self::getContainer()->get(ProductViewedAuthenticatedHandler::class);
+        //$ProductViewedAuthenticated->addViewedProduct($ViewedAuthenticatedDTO);
 
         /**
          * Получить данные по времени создания
          */
         $em = self::getContainer()->get(EntityManagerInterface::class);
+
         $created = $em
             ->getRepository(ProductsViewed::class)
-            ->findOneBy(['usr' => UserUid::TEST, 'invariable' => $productIvariableUid]);
-        $em->clear();
+            ->findOneBy([
+                'usr' => UserUid::TEST,
+                'invariable' => ProductInvariableUid::TEST
+            ]);
+
+        self::assertInstanceOf(ProductsViewed::class, $created);
+
+        sleep(1);
 
         /**
          * Обновить запись
          */
-        $ViewedAuthenticatedDTO = new ProductViewedAuthenticatedDTO();
-        $ViewedAuthenticatedDTO
-            ->setId($productIvariableUid)
-            ->setUsr(new UserUid());
+        $ViewedAuthenticatedDTO = new ProductViewedAuthenticatedDTO()
+            ->setId(new ProductInvariableUid(ProductInvariableUid::TEST))
+            ->setUsr(new UserUid(UserUid::TEST));
 
         /** @var ProductViewedAuthenticatedHandler $ProductViewedAuthenticated */
         $ProductViewedAuthenticated = self::getContainer()->get(ProductViewedAuthenticatedHandler::class);
@@ -110,13 +100,23 @@ class ProductViewedAuthenticatedUpdateTest extends KernelTestCase
         /**
          * Проверить дату обновления
          */
+        $em->clear();
+
         $updated = $em
             ->getRepository(ProductsViewed::class)
-            ->findOneBy(['usr' => UserUid::TEST, 'invariable' => $productIvariableUid]);
+            ->findOneBy([
+                'usr' => UserUid::TEST,
+                'invariable' => ProductInvariableUid::TEST
+            ]);
+
+        self::assertInstanceOf(ProductsViewed::class, $created);
 
         /**
          * Проверить, что даты создания и обновления отличаются
          */
-        self::assertNotEquals($created->getViewedDate(), $updated->getViewedDate());
+        self::assertNotEquals(
+            $created->getViewedDate()->format(DateTimeInterface::ATOM),
+            $updated->getViewedDate()->format(DateTimeInterface::ATOM)
+        );
     }
 }

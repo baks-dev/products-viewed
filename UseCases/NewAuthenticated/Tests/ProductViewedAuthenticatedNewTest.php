@@ -50,14 +50,18 @@ class ProductViewedAuthenticatedNewTest extends KernelTestCase
         $em = self::getContainer()->get(EntityManagerInterface::class);
 
         $main = $em->getRepository(ProductsViewed::class)
-            ->findOneBy(['usr' => UserUid::TEST]);
+            ->findOneBy([
+                'usr' => UserUid::TEST,
+                'invariable' => ProductInvariableUid::TEST
+            ]);
 
         if($main)
         {
             $em->remove($main);
+            $em->flush();
+
         }
 
-        $em->flush();
         $em->clear();
     }
 
@@ -65,21 +69,16 @@ class ProductViewedAuthenticatedNewTest extends KernelTestCase
     public function testUseCase(): void
     {
 
-        $ProductsProductNewTest = new ProductsProductNewTest();
-        $ProductsProductNewTest->testUseCase();
-
         /** @see ProductViewedAuthenticatedDTO */
         $ViewedAuthenticatedDTO = new ProductViewedAuthenticatedDTO();
-
-        $ViewedAuthenticatedDTO
-            ->setId(new ProductInvariableUid())
-            ->setUsr(new UserUid());
 
         $ViewedAuthenticatedDTO->setId($ProductInvariableUid = new ProductInvariableUid(ProductInvariableUid::TEST));
         self::assertSame($ProductInvariableUid, $ViewedAuthenticatedDTO->getId());
 
+
         $ViewedAuthenticatedDTO->setUsr($UserUid = new UserUid(UserUid::TEST));
         self::assertSame($UserUid, $ViewedAuthenticatedDTO->getUsr());
+
 
         /** @var ProductViewedAuthenticatedHandler $ProductViewedAuthenticated */
         $ProductViewedAuthenticated = self::getContainer()->get(ProductViewedAuthenticatedHandler::class);

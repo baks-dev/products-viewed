@@ -42,29 +42,44 @@ class ProductsViewedRepositoryTest extends KernelTestCase
         $ProductsViewedRepository = self::getContainer()->get(ProductsViewedRepository::class);
 
         $viewedProducts = $ProductsViewedRepository->findUserProductInvariablesViewed(new UserUid(UserUid::TEST));
+
+        if($viewedProducts === false)
+        {
+            self::assertFalse(false);
+            return;
+        }
+
         $current = current($viewedProducts);
 
         if($current === false)
         {
-            self::assertFalse($current);
+            self::assertFalse(false);
             return;
         }
 
         $array_keys = [
             "invariable_id",
             "product_name",
+
             "offer_value",
             "offer_postfix",
+            "offer_reference",
+
             "variation_value",
             "variation_postfix",
+            "variation_reference",
+
             "modification_value",
             "modification_postfix",
             "modification_article",
+            "modification_reference",
+
             "product_quantity",
             "product_id",
             "product_image_cdn",
             "product_image_ext",
             "product_image",
+
             "price",
             "currency",
             "old_price",

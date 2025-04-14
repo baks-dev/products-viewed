@@ -46,11 +46,11 @@ final class ProductViewedAuthenticatedHandler extends AbstractHandler
         parent::__construct($entityManager, $messageDispatch, $validatorCollection, $imageUpload, $fileUpload);
     }
 
-    public function addViewedProduct(ProductViewedAuthenticatedDTO $dto): ProductsViewed|bool
+    public function addViewedProduct(ProductViewedAuthenticatedDTO $command): ProductsViewed|bool
     {
         $isUpdate = $this->dataUpdate
-            ->user($dto->getUsr())
-            ->invariable($dto->getId())
+            ->user($command->getUsr())
+            ->invariable($command->getId())
             ->update();
 
         if(true === $isUpdate)
@@ -59,8 +59,8 @@ final class ProductViewedAuthenticatedHandler extends AbstractHandler
         }
 
         $ProductsViewed = new ProductsViewed()
-            ->setUsr($dto->getUsr())
-            ->setInvariable($dto->getId());
+            ->setUsr($command->getUsr())
+            ->setInvariable($command->getId());
 
         $this->validatorCollection->add($ProductsViewed);
 
