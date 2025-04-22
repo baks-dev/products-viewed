@@ -27,7 +27,7 @@ namespace BaksDev\Products\Viewed\Listeners\Event;
 
 use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Products\Product\Controller\User\DetailController;
-use BaksDev\Products\Product\Repository\ProductDetail\ProductDetailByValueInterface;
+use BaksDev\Products\Product\Repository\ProductDetailByValue\ProductDetailByValueInterface;
 use BaksDev\Products\Viewed\Messenger\ProductViewedMessage;
 use BaksDev\Users\User\Type\Id\UserUid;
 use Symfony\Bundle\SecurityBundle\Security;
