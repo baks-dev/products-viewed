@@ -144,6 +144,16 @@ final readonly class ProductsViewedResult implements RepositoryResultInterface
 
     public function getProductRootImage(): ?array
     {
+        if(is_null($this->product_root_image))
+        {
+            return null;
+        }
+
+        if(false === json_validate($this->product_root_image))
+        {
+            return null;
+        }
+
         $images = json_decode($this->product_root_image, true, 512, JSON_THROW_ON_ERROR);
 
         $rootImage = current($images);
