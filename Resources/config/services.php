@@ -37,7 +37,9 @@ return static function(ContainerConfigurator $container) {
         ->exclude([
             BaksDevProductsViewedBundle::PATH.'{Entity,Resources,Type}',
             BaksDevProductsViewedBundle::PATH.'**'.DIRECTORY_SEPARATOR.'*Message.php',
+            BaksDevProductsViewedBundle::PATH.'**'.DIRECTORY_SEPARATOR.'*Result.php',
             BaksDevProductsViewedBundle::PATH.'**'.DIRECTORY_SEPARATOR.'*DTO.php',
+            BaksDevProductsViewedBundle::PATH.'**'.DIRECTORY_SEPARATOR.'*Test.php',
         ]);
 
 };

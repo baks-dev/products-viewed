@@ -53,8 +53,14 @@ use BaksDev\Products\Product\Entity\Product;
 use BaksDev\Products\Product\Entity\ProductInvariable;
 use BaksDev\Products\Product\Entity\Trans\ProductTrans;
 use BaksDev\Products\Viewed\Entity\ProductsViewed;
+use BaksDev\Users\Profile\UserProfile\Entity\Info\UserProfileInfo;
+use BaksDev\Users\Profile\UserProfile\Repository\UserProfileTokenStorage\UserProfileTokenStorageInterface;
+use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
+use BaksDev\Users\Profile\UserProfile\Type\UserProfileStatus\Status\UserProfileStatusActive;
+use BaksDev\Users\Profile\UserProfile\Type\UserProfileStatus\UserProfileStatus;
 use BaksDev\Users\User\Type\Id\UserUid;
 use Doctrine\DBAL\ArrayParameterType;
+use Generator;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
@@ -66,8 +72,104 @@ final class ProductsViewedRepository implements ProductsViewedInterface
 
     public function __construct(
         private readonly DBALQueryBuilder $DBALQueryBuilder,
-        private readonly RequestStack $requestStack
+        private readonly RequestStack $requestStack,
+        private readonly UserProfileTokenStorageInterface $userProfileTokenStorage,
     ) {}
+
+    /**
+     * Получение данных о продукте для анонимного пользователя
+     *
+     * @return Generator<int, ProductsViewedResult>|false
+     */
+    public function findAnonymousProductInvariablesViewed(): Generator|false
+    {
+        if($this->session === false)
+        {
+            $this->session = $this->requestStack->getSession();
+        }
+
+        $viewedProducts = $this->session->get('viewedProducts') ?? [];
+
+        if(empty($viewedProducts))
+        {
+            return false;
+        }
+
+        /**
+         * Создание 'CASE' строки для сортировки по $viewedProducts
+         */
+        $orderByCase = " CASE invariable.id ";
+
+        $productsCount = 0;
+
+        foreach($viewedProducts as $viewedProduct)
+        {
+            $orderByCase .= " WHEN '$viewedProduct' THEN $productsCount ";
+            $productsCount++;
+        }
+
+        $orderByCase .= " END ";
+
+        /**
+         * Применяем сортировку $viewedProducts к результату запроса
+         */
+
+        $dbal = $this->builder();
+
+        $dbal
+            ->addSelect('invariable.id as invariable_id')
+            ->from(ProductInvariable::class, 'invariable')
+            ->where('invariable.id IN (:viewedProducts)')
+            ->setParameter(
+                key: 'viewedProducts',
+                value: $viewedProducts,
+                type: ArrayParameterType::STRING
+            )
+            ->addOrderBy($orderByCase)
+            ->addGroupBy('invariable.id');
+
+        $dbal->enableCache('products-viewed');
+
+        $result = $dbal->fetchAllHydrate(ProductsViewedResult::class);
+
+        return (true === $result->valid()) ? $result : false;
+    }
+
+    /**
+     * Получение данных о продукте для авторизованного пользователя
+     *
+     * @return Generator<int, ProductsViewedResult>|false
+     */
+    public function findUserProductInvariablesViewed(?UserUid $usr): Generator|false
+    {
+        $dbal = $this->builder();
+
+        $dbal
+            ->addSelect('viewed.invariable as invariable_id')
+            ->from(ProductsViewed::class, 'viewed')
+            ->where('viewed.usr = :usr')
+            ->setParameter(
+                key: 'usr',
+                value: $usr,
+                type: UserUid::TYPE
+            )
+            ->addGroupBy('viewed.viewed_date')
+            ->addGroupBy('viewed.invariable');
+
+        $dbal
+            ->leftJoin(
+                'viewed',
+                ProductInvariable::class,
+                'invariable',
+                'invariable.id = viewed.invariable'
+            );
+
+        $dbal->orderBy('viewed.viewed_date', 'DESC');
+
+        $result = $dbal->fetchAllHydrate(ProductsViewedResult::class);
+
+        return (true === $result->valid()) ? $result : false;
+    }
 
     private function builder(): DBALQueryBuilder
     {
@@ -91,7 +193,6 @@ final class ProductsViewedRepository implements ProductsViewedInterface
             'product_event.id = product.event'
         );
 
-
         $dbal
             ->addSelect('product_trans.name AS product_name')
             ->join(
@@ -100,7 +201,6 @@ final class ProductsViewedRepository implements ProductsViewedInterface
                 'product_trans',
                 'product_trans.event = product.event AND product_trans.local = :local'
             );
-
 
         /**
          * Product url
@@ -191,27 +291,36 @@ final class ProductsViewedRepository implements ProductsViewedInterface
 
         /** MODIFICATION */
         $dbal
-            ->addSelect('modification.value AS modification_value')
-            ->addSelect('modification.postfix AS modification_postfix')
-            ->addSelect('modification.article AS modification_article')
+            ->addSelect('product_modification.value AS modification_value')
+            ->addSelect('product_modification.postfix AS modification_postfix')
             ->leftJoin(
                 'product_variation',
                 ProductModification::class,
-                'modification',
+                'product_modification',
                 '
-                    modification.variation = product_variation.id AND 
-                    modification.const = invariable.modification
+                    product_modification.variation = product_variation.id AND 
+                    product_modification.const = invariable.modification
                 ');
 
         /** Тип модификации множественного варианта */
         $dbal
             ->addSelect('category_modification.reference as modification_reference')
             ->leftJoin(
-                'modification',
+                'product_modification',
                 CategoryProductModification::class,
                 'category_modification',
-                'category_modification.id = modification.category_modification'
+                'category_modification.id = product_modification.category_modification'
             );
+
+        /** Артикул продукта */
+        $dbal->addSelect('
+            COALESCE(
+                product_modification.article, 
+                product_variation.article, 
+                product_offer.article, 
+                product_info.article
+            ) AS product_article
+		');
 
         /**
          * Стоимость продукта
@@ -241,10 +350,10 @@ final class ProductsViewedRepository implements ProductsViewedInterface
 
         $dbal
             ->leftJoin(
-                'modification',
+                'product_modification',
                 ProductModificationPrice::class,
                 'modification_price',
-                'modification_price.modification = modification.id'
+                'modification_price.modification = product_modification.id'
             );
 
         /**
@@ -265,24 +374,24 @@ final class ProductsViewedRepository implements ProductsViewedInterface
         );
 
         $dbal->leftJoin(
-            'modification',
+            'product_modification',
             ProductModificationQuantity::class,
             'product_modification_quantity',
-            'product_modification_quantity.modification = modification.id'
+            'product_modification_quantity.modification = product_modification.id'
         );
 
         $dbal->addSelect("
            CASE
-             WHEN product_modification_quantity.quantity IS NOT NULL 
+             WHEN product_modification_quantity.quantity IS NOT NULL AND product_modification_quantity.quantity > 0 AND product_modification_quantity.quantity > product_modification_quantity.reserve
              THEN (product_modification_quantity.quantity - product_modification_quantity.reserve)
              
-             WHEN product_variation_quantity.quantity IS NOT NULL 
+             WHEN product_variation_quantity.quantity IS NOT NULL AND product_variation_quantity.quantity > 0 AND product_variation_quantity.quantity > product_variation_quantity.reserve
              THEN (product_variation_quantity.quantity - product_variation_quantity.reserve)
              
-             WHEN product_offer_quantity.quantity IS NOT NULL 
+             WHEN product_offer_quantity.quantity IS NOT NULL AND product_offer_quantity.quantity > 0 AND product_offer_quantity.quantity > product_offer_quantity.reserve
              THEN (product_offer_quantity.quantity - product_offer_quantity.reserve)
              
-             WHEN product_price.quantity  IS NOT NULL 
+             WHEN product_price.quantity IS NOT NULL AND product_price.quantity > 0 AND product_price.quantity > product_price.reserve
              THEN (product_price.quantity - product_price.reserve)
              
              ELSE 0
@@ -298,87 +407,92 @@ final class ProductsViewedRepository implements ProductsViewedInterface
             ProductPhoto::class,
             'product_photo',
             'product_photo.event = product_event.id AND product_photo.root = true'
-        );
+        )
+            ->addGroupBy('product_photo.ext');
 
         $dbal->leftJoin(
             'product_offer',
             ProductOfferImage::class,
             'product_offer_images',
             'product_offer_images.offer = product_offer.id AND product_offer_images.root = true'
-        );
+        )
+            ->addGroupBy('product_offer_images.ext');
 
         $dbal->leftJoin(
             'product_offer',
             ProductVariationImage::class,
             'product_variation_image',
             'product_variation_image.variation = product_variation.id AND product_variation_image.root = true'
-        );
+        )
+            ->addGroupBy('product_variation_image.ext');
 
         $dbal->leftJoin(
-            'modification',
+            'product_modification',
             ProductModificationImage::class,
             'product_modification_image',
-            'product_modification_image.modification = modification.id AND product_modification_image.root = true'
-        );
+            'product_modification_image.modification = product_modification.id AND product_modification_image.root = true'
+        )
+            ->addGroupBy('product_modification_image.ext');
 
-        $dbal->addSelect(
-            "
-			CASE
-			   WHEN product_modification_image.name IS NOT NULL 
-			   THEN CONCAT ( '/upload/".$dbal->table(ProductModificationImage::class)."' , '/', product_modification_image.name)
-			
-			   WHEN product_variation_image.name IS NOT NULL 
-			   THEN CONCAT ( '/upload/".$dbal->table(ProductVariationImage::class)."' , '/', product_variation_image.name)
-			   
-			   WHEN product_offer_images.name IS NOT NULL 
-			   THEN CONCAT ( '/upload/".$dbal->table(ProductOfferImage::class)."' , '/', product_offer_images.name)
-			   
-			   WHEN product_photo.name IS NOT NULL 
-			   THEN CONCAT ( '/upload/".$dbal->table(ProductPhoto::class)."' , '/', product_photo.name)
-			   
-			   ELSE NULL
-			END AS product_image
-		"
-        );
-
-        /** Флаг загрузки файла CDN */
+        /** Агрегация фотографий */
         $dbal->addSelect("
-			CASE
-			   WHEN product_modification_image.name IS NOT NULL 
-			   THEN product_modification_image.ext
-			
-			   WHEN product_variation_image.name IS NOT NULL 
-			   THEN product_variation_image.ext
-			   
-			   WHEN product_offer_images.name IS NOT NULL 
-			   THEN product_offer_images.ext
-			   
-			   WHEN product_photo.name IS NOT NULL 
-			   THEN product_photo.ext
-			   
-			   ELSE NULL
-			END AS product_image_ext
-		");
-
-
-        /** Флаг загрузки файла CDN */
-        $dbal->addSelect("
-			CASE
-			   WHEN product_modification_image.name IS NOT NULL 
-			   THEN product_modification_image.cdn
-			
-			   WHEN product_variation_image.name IS NOT NULL 
-			   THEN product_variation_image.cdn
-					
-			   WHEN product_offer_images.name IS NOT NULL 
-			   THEN product_offer_images.cdn
-					
-			   WHEN product_photo.name IS NOT NULL 
-			   THEN product_photo.cdn
-			   
-			   ELSE NULL
-			END AS product_image_cdn
-		");
+            CASE 
+            WHEN product_modification_image.ext IS NOT NULL THEN
+                JSON_AGG 
+                    (DISTINCT
+                        JSONB_BUILD_OBJECT
+                            (
+                                'product_img_root', product_modification_image.root,
+                                'product_img', CONCAT ( '/upload/".$dbal->table(ProductModificationImage::class)."' , '/', product_modification_image.name),
+                                'product_img_ext', product_modification_image.ext,
+                                'product_img_cdn', product_modification_image.cdn
+                            )
+                    )
+            
+            WHEN product_variation_image.ext IS NOT NULL THEN
+                JSON_AGG
+                    (DISTINCT
+                    JSONB_BUILD_OBJECT
+                        (
+                            'product_img_root', product_variation_image.root,
+                            'product_img', CONCAT ( '/upload/".$dbal->table(ProductVariationImage::class)."' , '/', product_variation_image.name),
+                            'product_img_ext', product_variation_image.ext,
+                            'product_img_cdn', product_variation_image.cdn
+                        ) 
+                    )
+                    
+            WHEN product_offer_images.ext IS NOT NULL THEN
+            JSON_AGG
+                (DISTINCT
+                    JSONB_BUILD_OBJECT
+                        (
+                            'product_img_root', product_offer_images.root,
+                            'product_img', CONCAT ( '/upload/".$dbal->table(ProductOfferImage::class)."' , '/', product_offer_images.name),
+                            'product_img_ext', product_offer_images.ext,
+                            'product_img_cdn', product_offer_images.cdn
+                        )
+                        
+                    /*ORDER BY product_photo.root DESC, product_photo.id*/
+                )
+                
+            WHEN product_photo.ext IS NOT NULL THEN
+            JSON_AGG
+                (DISTINCT
+                    JSONB_BUILD_OBJECT
+                        (
+                            'product_img_root', product_photo.root,
+                            'product_img', CONCAT ( '/upload/".$dbal->table(ProductPhoto::class)."' , '/', product_photo.name),
+                            'product_img_ext', product_photo.ext,
+                            'product_img_cdn', product_photo.cdn
+                        )
+                    
+                    /*ORDER BY product_photo.root DESC, product_photo.id*/
+                )
+            
+            ELSE NULL
+            END
+			AS product_root_image"
+        );
 
         /** Цена */
         $dbal->addSelect('
@@ -413,95 +527,39 @@ final class ProductsViewedRepository implements ProductsViewedInterface
             ) AS currency
         ');
 
+        /** Персональная скидка из профиля авторизованного пользователя */
+        if(true === $this->userProfileTokenStorage->isUser())
+        {
+            $profile = $this->userProfileTokenStorage->getProfileCurrent();
 
+            if($profile instanceof UserProfileUid)
+            {
+                $dbal
+                    ->addSelect('profile_info.discount AS profile_discount')
+                    ->leftJoin(
+                        'product',
+                        UserProfileInfo::class,
+                        'profile_info',
+                        '
+                        profile_info.profile = :profile AND 
+                        profile_info.status = :profile_status'
+                    )
+                    ->setParameter(
+                        key: 'profile',
+                        value: $profile,
+                        type: UserProfileUid::TYPE)
+                    /** Активный статус профиля */
+                    ->setParameter(
+                        key: 'profile_status',
+                        value: UserProfileStatusActive::class,
+                        type: UserProfileStatus::TYPE
+                    );
+            }
+        }
+
+        $dbal->allGroupByExclude();
         $dbal->setMaxResults(self::VIEWED_PRODUCTS_LIMIT);
 
         return $dbal;
     }
-
-
-    /**
-     * Получение данных о продукте для анонимного пользователя
-     */
-    public function findAnonymousProductInvariablesViewed(): array|false
-    {
-        if($this->session === false)
-        {
-            $this->session = $this->requestStack->getSession();
-        }
-
-        $viewedProducts = $this->session->get('viewedProducts') ?? [];
-
-        if(empty($viewedProducts))
-        {
-            return false;
-        }
-
-        /**
-         * Создание 'CASE' строки для сортировки по $viewedProducts
-         */
-        $orderByCase = " CASE invariable.id ";
-
-        $productsCount = 0;
-
-        foreach($viewedProducts as $viewedProduct)
-        {
-            $orderByCase .= " WHEN '$viewedProduct' THEN $productsCount ";
-            $productsCount++;
-        }
-
-        $orderByCase .= " END ";
-
-        /**
-         * Применяем сортировку $viewedProducts к результату запроса
-         */
-
-        $dbal = $this->builder();
-
-        $dbal
-            ->addSelect('invariable.id as invariable_id')
-            ->from(ProductInvariable::class, 'invariable')
-            ->where('invariable.id IN (:viewedProducts)')
-            ->setParameter(
-                key: 'viewedProducts',
-                value: $viewedProducts,
-                type: ArrayParameterType::STRING
-            )
-            ->addOrderBy($orderByCase);
-
-        return $dbal
-            ->enableCache('products-viewed')
-            ->fetchAllAssociative() ?: false;
-    }
-
-    /**
-     * Получение данных о продукте для авторизованного пользователя
-     */
-    public function findUserProductInvariablesViewed(?UserUid $usr): array|false
-    {
-        $dbal = $this->builder();
-
-        $dbal
-            ->addSelect('viewed.invariable as invariable_id')
-            ->from(ProductsViewed::class, 'viewed')
-            ->where('viewed.usr = :usr')
-            ->setParameter(
-                key: 'usr',
-                value: $usr,
-                type: UserUid::TYPE
-            );
-
-        $dbal
-            ->leftJoin(
-                'viewed',
-                ProductInvariable::class,
-                'invariable',
-                'invariable.id = viewed.invariable'
-            );
-
-        $dbal->orderBy('viewed.viewed_date', 'DESC');
-
-        return $dbal->fetchAllAssociative() ?: false;
-    }
-
 }

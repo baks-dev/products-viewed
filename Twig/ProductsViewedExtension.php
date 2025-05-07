@@ -52,9 +52,14 @@ final class ProductsViewedExtension extends AbstractExtension
     {
         $currentUser = $this->security->getUser();
 
-        $productsViewed = $currentUser !== null ?
-            $this->productsViewedRepository->findUserProductInvariablesViewed($currentUser->getId()) :
-            $this->productsViewedRepository->findAnonymousProductInvariablesViewed();
+        if($currentUser !== null)
+        {
+            $productsViewed = $this->productsViewedRepository->findUserProductInvariablesViewed($currentUser->getId());
+        }
+        else
+        {
+            $productsViewed = $this->productsViewedRepository->findAnonymousProductInvariablesViewed();
+        }
 
         if(false === $productsViewed)
         {
@@ -67,7 +72,7 @@ final class ProductsViewedExtension extends AbstractExtension
         (
             name: $path,
             context: [
-                'products_viewed' => $productsViewed,
+                'products_viewed' => iterator_to_array($productsViewed),
                 'current_invariable_id' => $currentInvariableId,
             ]
         );
