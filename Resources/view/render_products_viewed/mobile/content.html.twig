@@ -1,45 +1,93 @@
-<section class="container pt-3">
-    {# Здесь в массиве просмотренных товаров больше 1 товара и далее исключается текущий #}
-    {% if products_viewed|length > 1 %}
-        <h2 class="fs-6 text-uppercase fw-bold mb-2">
+{# @var product \BaksDev\Products\Viewed\Repository\ProductsViewed\ProductsViewedResult #}
+{# @var v \BaksDev\Products\Viewed\Repository\ProductsViewed\ProductsViewedResult #}
+
+{% set products = products_viewed|filter(v => v.productInvariableId != current_invariable_id)|slice(0,4) %}
+
+{% if products is not empty %}
+
+    <section class="container py-4">
+        <h2 class="fs-6 text-uppercase fw-bold mb-3">
             вы смотрели
         </h2>
 
-        <div class="d-flex justify-content-between p-3 bg-warning-subtle gap-3 overflow-x-scroll scroll-none"
+        <div class="d-flex justify-content-start p-3 bg-warning-subtle gap-3 overflow-x-scroll scroll-none"
              style="margin: 0 -0.7rem">
-            {% set image_path = '/assets/img/blank.svg' %}
-            {% for product_viewed in products_viewed %}
-                {% if product_viewed.invariable_id != current_invariable_id %}
-                    <a href="{{ path('products-product:user.detail', {
-                        category: product_viewed.category_url,
-                        url: product_viewed.product_url,
-                        offer : product_viewed.offer_value,
-                        variation : product_viewed.variation_value,
-                        modification : product_viewed.modification_value
-                    }) }}" class="text-black text-decoration-none">
-                        <div class="d-flex flex-column align-items-center  gap-3">
-                            {# Сформировать ссылку на изображение #}
-                            {% if product_viewed.product_image is defined and product_viewed.product_image is not null %}
-                                {% set image_path = cdn_image_path(product_viewed.product_image, product_viewed.product_image_ext, product_viewed.product_image_cdn) %}
-                            {% endif %}
-                            <div class="pe-3"><img class="rounded-4" src="{{ image_path }}"
-                                                   alt="{{ product_viewed.product_name }}"
-                                                   style="width: 85px;"></div>
-                            <div>
-                                <h3 class="fs-9 text-uppercase fw-bold">
-                                    {{ product_viewed.product_name }} {{ product_viewed.modification_postfix }} {{ product_viewed.variation_value }}
-                                </h3>
+
+            {% for product in products %}
+
+                {% set RootImage = product.productRootImage %}
+
+                <a class="text-black text-decoration-none"
+                   href="{{ path('products-product:user.detail', {
+                       category: product.categoryUrl,
+                       url: product.productUrl,
+                       offer : product.productOfferValue,
+                       variation : product.productVariationValue,
+                       modification : product.productModificationValue,
+                       postfix: (product.productModificationPostfix ?: product.productVariationPostfix ?: product.productOfferPostfix ?: null )|replace({ '/': '-' }),
+                   }) }}">
+
+                    <div class="d-flex flex-column align-items-center  gap-3">
+
+                        {# Сформировать ссылку на изображение #}
+                        {% set image_path = '/assets/img/blank.svg' %}
+
+                        {% if RootImage.product_img is defined and RootImage.product_img is not null %}
+                            {% set image_path = cdn_image_path(RootImage.product_img, RootImage.product_img_ext, RootImage.product_img_cdn) %}
+                        {% endif %}
+
+                        <div class="pe-3">
+                            <img class="rounded-4" src="{{ image_path }}" alt="{{ product.productName }}"
+                                 style="width: 85px;">
+                        </div>
+
+                        <div>
+                            <h3 class="fs-9 text-uppercase fw-bold">
+                                {# Название продукта #}
+                                {{ product.productName }}
+
+                                {# Значение множественного варианта ТП #}
+                                {{ product.productVariationValue|call_twig_func(product.productVariationReference~'_render') ~
+                                product.productModificationValue|call_twig_func(product.productModificationReference~'_render') }}
+
+                                {# Значение торгового предложения #}
+                                {{ product.productOfferValue|call_twig_func(product.productOfferReference~'_render') }}
+
+                                {{ (product.productModificationPostfix ?: product.productVariationPostfix ?: product.productOfferPostfix ?: null )|replace({ '/': '-' }) }}
+                            </h3>
+
+                            {# Цена с учетом персональной скидки #}
+                            {% set Price = product.productPrice %}
+
+                            {# Старая цена #}
+                            {% set OldPrice = product.productOldPrice %}
+
+                            {% if product.productQuantity > 0 %}
+
                                 <p class="fs-14 fw-bold text-uppercase mb-0 lh-1 d-flex align-items-top gap-1 justify-content-between">
-                                    {{ money(product_viewed.price, product_viewed.currency) }}
-                                    {% if product_viewed.old_price != 0 %}
-                                        <span class="fs-8 fw-bold text-danger"><del>{{ money(product_viewed.old_price, product_viewed.currency) }}</del></span>
+
+                                    {{ money(Price, product.productCurrency) }}
+
+                                    {% if OldPrice.value != 0 %}
+                                        <span class="fs-8 fw-bold text-danger">
+									    <del>{{ money(OldPrice, product.productCurrency) }}</del>
+                                    </span>
                                     {% endif %}
                                 </p>
-                            </div>
+
+                            {% else %}
+
+                                <p class="mb-0 lh-1 d-flex align-items-top gap-1 justify-content-between card-text fw-bold m-0 text-muted opacity-25"
+                                   style="font-size:14px!important;">
+                                    <strong>Нет в наличии</strong>
+                                </p>
+
+                            {% endif %}
                         </div>
-                    </a>
-                {% endif %}
+                    </div>
+                </a>
             {% endfor %}
         </div>
-    {% endif %}
-</section>
+    </section>
+
+{% endif %}

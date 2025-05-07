@@ -26,17 +26,18 @@ declare(strict_types=1);
 namespace BaksDev\Products\Viewed\Repository\ProductsViewed;
 
 use BaksDev\Users\User\Type\Id\UserUid;
+use Generator;
 
 interface ProductsViewedInterface
 {
     /**
      * Получение данных о продукте для анонимного пользователя
      */
-    public function findAnonymousProductInvariablesViewed(): array|false;
+    public function findAnonymousProductInvariablesViewed(): Generator|false;
 
     /**
      * Получение данных о продукте для авторизованного пользователя
      */
-    public function findUserProductInvariablesViewed(?UserUid $usr): array|false;
+    public function findUserProductInvariablesViewed(?UserUid $usr): Generator|false;
 
 }

@@ -44,7 +44,11 @@ class ProductViewedAuthenticatedNewTest extends KernelTestCase
 {
     public static function setUpBeforeClass(): void
     {
+        /** Создаем тестовый продукт */
         ProductsProductNewTest::setUpBeforeClass();
+        new ProductsProductNewTest()->testUseCase();
+
+        self::ensureKernelShutdown();
 
         /** @var EntityManagerInterface $em */
         $em = self::getContainer()->get(EntityManagerInterface::class);
