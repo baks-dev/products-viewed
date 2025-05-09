@@ -144,8 +144,6 @@ final readonly class ProductsViewedResult implements RepositoryResultInterface
 
     public function getProductRootImage(): ?array
     {
-
-
         if(is_null($this->product_root_image))
         {
             return null;
@@ -171,7 +169,7 @@ final readonly class ProductsViewedResult implements RepositoryResultInterface
 
     public function getProductPrice(): Money|false
     {
-        if(empty($this->product_price))
+        if(empty($this->price))
         {
             return false;
         }
@@ -189,7 +187,7 @@ final readonly class ProductsViewedResult implements RepositoryResultInterface
 
     public function getProductOldPrice(): Money|false
     {
-        if(empty($this->product_old_price))
+        if(empty($this->old_price))
         {
             return false;
         }
