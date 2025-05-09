@@ -64,7 +64,7 @@ final readonly class ProductsViewedResult implements RepositoryResultInterface
 
         private string|null $category_url,
 
-        private int|null $profile_discount = null,
+        private string|null $profile_discount = null,
     ) {}
 
     public function getProductInvariableId(): ?ProductInvariableUid
@@ -144,6 +144,8 @@ final readonly class ProductsViewedResult implements RepositoryResultInterface
 
     public function getProductRootImage(): ?array
     {
+
+
         if(is_null($this->product_root_image))
         {
             return null;
@@ -166,32 +168,29 @@ final readonly class ProductsViewedResult implements RepositoryResultInterface
         return $rootImage;
     }
 
+
     public function getProductPrice(): Money
     {
-        // без применения скидки в профиле пользователя
-        if(is_null($this->profile_discount))
-        {
-            return new Money($this->price, true);
-        }
+        $price = new Money($this->price, true);
 
         // применяем скидку пользователя из профиля
-        $price = new Money($this->price, true);
-        $price->applyPercent($this->profile_discount);
+        if(false === empty($this->profile_discount))
+        {
+            $price->applyString($this->profile_discount);
+        }
 
         return $price;
     }
 
     public function getProductOldPrice(): Money
     {
-        // без применения скидки в профиле пользователя
-        if(is_null($this->profile_discount))
-        {
-            return new Money($this->old_price, true);
-        }
+        $price = new Money($this->old_price, true);
 
         // применяем скидку пользователя из профиля
-        $price = new Money($this->old_price, true);
-        $price->applyPercent($this->profile_discount);
+        if(false === empty($this->profile_discount))
+        {
+            $price->applyString($this->profile_discount);
+        }
 
         return $price;
     }
