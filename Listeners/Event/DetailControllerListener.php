@@ -26,7 +26,7 @@ declare(strict_types=1);
 namespace BaksDev\Products\Viewed\Listeners\Event;
 
 use BaksDev\Core\Messenger\MessageDispatchInterface;
-use BaksDev\Products\Product\Controller\User\DetailController;
+use BaksDev\Products\Product\Controller\Public\DetailController;
 use BaksDev\Products\Product\Repository\ProductDetailByValue\ProductDetailByValueInterface;
 use BaksDev\Products\Viewed\Messenger\ProductViewedMessage;
 use BaksDev\Users\User\Type\Id\UserUid;

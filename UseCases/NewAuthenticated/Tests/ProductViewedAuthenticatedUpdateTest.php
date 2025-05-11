@@ -26,7 +26,7 @@ declare(strict_types=1);
 namespace BaksDev\Products\Viewed\UseCases\NewAuthenticated\Tests;
 
 use BaksDev\Products\Product\Type\Invariable\ProductInvariableUid;
-use BaksDev\Products\Product\UseCase\Admin\NewEdit\Tests\ProductsProductNewTest;
+use BaksDev\Products\Product\UseCase\Admin\NewEdit\Tests\ProductsProductNewAdminUseCaseTest;
 use BaksDev\Products\Viewed\Entity\ProductsViewed;
 use BaksDev\Products\Viewed\UseCases\NewAuthenticated\ProductViewedAuthenticatedDTO;
 use BaksDev\Products\Viewed\UseCases\NewAuthenticated\ProductViewedAuthenticatedHandler;
