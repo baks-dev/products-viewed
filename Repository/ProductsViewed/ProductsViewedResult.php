@@ -64,6 +64,11 @@ final readonly class ProductsViewedResult implements ProductPriceResultInterface
 
         private string|null $category_url,
 
+        private string|null $invariable = null,
+
+        private ?bool $promotion_active = null,
+        private string|int|null $promotion_price = null,
+
         private string|null $profile_discount = null,
         private string|null $project_discount = null,
 
@@ -176,7 +181,14 @@ final readonly class ProductsViewedResult implements ProductPriceResultInterface
             return false;
         }
 
+        /** Оригинальная цена */
         $price = new Money($this->price, true);
+
+        /** Кастомная цена */
+        if(false === empty($this->promotion_price) && true === $this->promotion_active)
+        {
+            $price->applyString($this->promotion_price);
+        }
 
         /** Скидка магазина */
         if(false === empty($this->project_discount))
@@ -201,6 +213,12 @@ final readonly class ProductsViewedResult implements ProductPriceResultInterface
         }
 
         $price = new Money($this->old_price, true);
+
+        /** Кастомная цена */
+        if(false === empty($this->promotion_price) && true === $this->promotion_active)
+        {
+            $price->applyString($this->promotion_price);
+        }
 
         /** Скидка магазина */
         if(false === empty($this->project_discount))
@@ -236,5 +254,4 @@ final readonly class ProductsViewedResult implements ProductPriceResultInterface
     {
         return $this->profile_discount;
     }
-
 }

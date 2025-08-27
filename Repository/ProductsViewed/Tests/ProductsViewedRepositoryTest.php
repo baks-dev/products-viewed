@@ -24,17 +24,24 @@
 namespace BaksDev\Products\Viewed\Repository\ProductsViewed\Tests;
 
 use BaksDev\Products\Viewed\Repository\ProductsViewed\ProductsViewedRepository;
+use BaksDev\Products\Viewed\UseCases\NewAuthenticated\Tests\ProductViewedAuthenticatedNewTest;
 use BaksDev\Users\User\Type\Id\UserUid;
+use PHPUnit\Framework\Attributes\DependsOnClass;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
 /**
  * @group products-viewed
+ * @group products-viewed-repo
+ *
  * @depends BaksDev\Products\Viewed\UseCases\NewAuthenticated\Tests\ProductViewedAuthenticatedNewTest::class
  */
+#[Group('products-viewed')]
 #[When(env: 'test')]
 class ProductsViewedRepositoryTest extends KernelTestCase
 {
+    #[DependsOnClass(ProductViewedAuthenticatedNewTest::class)]
     public function testFindUserProductInvariablesViewed()
     {
         /** @var ProductsViewedRepository $ProductsViewedRepository */
