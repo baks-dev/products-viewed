@@ -26,12 +26,12 @@ namespace BaksDev\Products\Viewed\UseCases\NewAnonymous\Tests;
 use BaksDev\Products\Product\Entity\ProductInvariable;
 use BaksDev\Products\Product\Type\Invariable\ProductInvariableUid;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\DependencyInjection\Attribute\When;
 
-/**
- * @group products-viewed
- */
 #[When(env: 'test')]
+#[Group('products-viewed')]
 class ProductViewedAnonymousNewTest extends WebTestCase
 {
     private const string URL = '/catalog/new/new_info_url/100/200/300';

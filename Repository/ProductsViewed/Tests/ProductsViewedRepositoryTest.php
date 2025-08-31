@@ -31,18 +31,12 @@ use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
-/**
- * @group products-viewed
- * @group products-viewed-repo
- *
- * @depends BaksDev\Products\Viewed\UseCases\NewAuthenticated\Tests\ProductViewedAuthenticatedNewTest::class
- */
-#[Group('products-viewed')]
 #[When(env: 'test')]
+#[Group('products-viewed')]
 class ProductsViewedRepositoryTest extends KernelTestCase
 {
     #[DependsOnClass(ProductViewedAuthenticatedNewTest::class)]
-    public function testFindUserProductInvariablesViewed()
+    public function testFindUserProductInvariablesViewed(): void
     {
         /** @var ProductsViewedRepository $ProductsViewedRepository */
         $ProductsViewedRepository = self::getContainer()->get(ProductsViewedRepository::class);

@@ -32,14 +32,12 @@ use BaksDev\Products\Viewed\UseCases\NewAuthenticated\ProductViewedAuthenticated
 use BaksDev\Products\Viewed\UseCases\NewAuthenticated\ProductViewedAuthenticatedHandler;
 use BaksDev\Users\User\Type\Id\UserUid;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
-
-/**
- * @group products-viewed
- */
 #[When(env: 'test')]
+#[Group('products-viewed')]
 class ProductViewedAuthenticatedNewTest extends KernelTestCase
 {
     public static function setUpBeforeClass(): void

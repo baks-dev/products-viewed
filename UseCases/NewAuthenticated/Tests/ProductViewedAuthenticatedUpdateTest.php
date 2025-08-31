@@ -33,18 +33,16 @@ use BaksDev\Products\Viewed\UseCases\NewAuthenticated\ProductViewedAuthenticated
 use BaksDev\Users\User\Type\Id\UserUid;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\DependsOnClass;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
-
-/**
- * @group products-viewed
- * @depends BaksDev\Products\Viewed\UseCases\NewAuthenticated\Tests\ProductViewedAuthenticatedNewTest::class
- * @see     ProductViewedAuthenticatedNewTest
- */
 #[When(env: 'test')]
+#[Group('products-viewed')]
 class ProductViewedAuthenticatedUpdateTest extends KernelTestCase
 {
+    #[DependsOnClass(ProductViewedAuthenticatedNewTest::class)]
     public function testUseCaseUpdate(): void
     {
         /**
