@@ -64,29 +64,28 @@ final readonly class DetailControllerListener
                     $postfix = $args['postfix'] ?? null;
 
                     $card = $this->productDetail
-                        ->fetchProductAssociative(
-                            $product,
-                            $offer,
-                            $variation,
-                            $modification,
-                            $postfix
-                        );
+                        ->byProduct($product)
+                        ->byOfferValue($offer)
+                        ->byVariationValue($variation)
+                        ->byModificationValue($modification)
+                        ->byPostfix($postfix)
+                        ->find();
 
                     if($card)
                     {
                         $currentUser = $this->security->getUser();
 
                         $ProductViewedMessage = new ProductViewedMessage(
-                            $card['id'],
-                            $card['product_offer_const'],
-                            $card['product_variation_const'],
-                            $card['product_modification_const'],
+                            $card->getProductId(),
+                            $card->getProductOfferConst(),
+                            $card->getProductVariationConst(),
+                            $card->getProductModificationConst(),
                             $currentUser !== null ? new UserUid($currentUser->getId()) : null,
                         );
 
                         $this->messageDispatch->dispatch(
                             $ProductViewedMessage,
-                            transport: $currentUser ? 'products-viewed' : null
+                            transport: $currentUser ? 'products-viewed' : null,
                         );
                     }
                 }
