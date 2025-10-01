@@ -30,7 +30,7 @@
                     <div class="d-flex flex-column align-items-center  gap-3">
 
                         {# Сформировать ссылку на изображение #}
-                        {% set image_path = '/assets/img/blank.svg' %}
+                        {% set image_path = '/assets/'~version~'/img/blank.svg' %}
 
                         {% if RootImage.product_img is defined and RootImage.product_img is not null %}
                             {% set image_path = cdn_image_path(RootImage.product_img, RootImage.product_img_ext, RootImage.product_img_cdn) %}
