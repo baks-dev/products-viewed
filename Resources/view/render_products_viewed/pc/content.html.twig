@@ -68,7 +68,7 @@
                                             {{ money(Price, product.productCurrency) }}
                                         </p>
 
-                                        {% if OldPrice.value != 0 %}
+                                        {% if OldPrice and OldPrice.value != 0 %}
                                             <span class="fs-10 fw-bold text-danger">
                                             <del>{{ money(OldPrice, product.productCurrency) }}</del>
                                         </span>
