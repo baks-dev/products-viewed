@@ -48,6 +48,8 @@ final class ProductViewedAuthenticatedHandler extends AbstractHandler
 
     public function addViewedProduct(ProductViewedAuthenticatedDTO $command): ProductsViewed|bool
     {
+        $this->setCommand($command);
+
         $isUpdate = $this->dataUpdate
             ->user($command->getUsr())
             ->invariable($command->getId())
