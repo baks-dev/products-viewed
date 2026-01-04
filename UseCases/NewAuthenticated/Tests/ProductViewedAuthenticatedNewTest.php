@@ -44,7 +44,7 @@ class ProductViewedAuthenticatedNewTest extends KernelTestCase
     {
         /** Создаем тестовый продукт */
         ProductsProductNewAdminUseCaseTest::setUpBeforeClass();
-        new ProductsProductNewAdminUseCaseTest()->testUseCase();
+        new ProductsProductNewAdminUseCaseTest('')->testUseCase();
 
         self::ensureKernelShutdown();
 
