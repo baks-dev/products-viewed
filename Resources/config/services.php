@@ -29,9 +29,8 @@ return static function(ContainerConfigurator $container) {
 
     $services = $container->services()
         ->defaults()
-        ->public()
         ->autowire()
-        ->autoconfigure();
+        ->autoconfigure(); //->public();
 
     $services->load(BaksDevProductsViewedBundle::NAMESPACE, BaksDevProductsViewedBundle::PATH)
         ->exclude([
