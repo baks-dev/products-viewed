@@ -9,7 +9,7 @@ return static function(TwigConfig $twig) {
 
     $twig->path(
         BaksDevProductsViewedBundle::PATH.implode(DIRECTORY_SEPARATOR, ['Resources', 'view', '']), // .'Resources/view',
-        'products-viewed'
+        'products-viewed',
     );
 
 };

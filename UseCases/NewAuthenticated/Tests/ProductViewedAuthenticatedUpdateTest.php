@@ -72,7 +72,7 @@ class ProductViewedAuthenticatedUpdateTest extends KernelTestCase
             ->getRepository(ProductsViewed::class)
             ->findOneBy([
                 'usr' => UserUid::TEST,
-                'invariable' => ProductInvariableUid::TEST
+                'invariable' => ProductInvariableUid::TEST,
             ]);
 
         self::assertInstanceOf(ProductsViewed::class, $created);
@@ -104,7 +104,7 @@ class ProductViewedAuthenticatedUpdateTest extends KernelTestCase
             ->getRepository(ProductsViewed::class)
             ->findOneBy([
                 'usr' => UserUid::TEST,
-                'invariable' => ProductInvariableUid::TEST
+                'invariable' => ProductInvariableUid::TEST,
             ]);
 
         self::assertInstanceOf(ProductsViewed::class, $created);
@@ -114,7 +114,7 @@ class ProductViewedAuthenticatedUpdateTest extends KernelTestCase
          */
         self::assertNotEquals(
             $created->getViewedDate()->format(DateTimeInterface::ATOM),
-            $updated->getViewedDate()->format(DateTimeInterface::ATOM)
+            $updated->getViewedDate()->format(DateTimeInterface::ATOM),
         );
     }
 }

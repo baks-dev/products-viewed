@@ -43,7 +43,7 @@ final class ProductsViewedExtension extends AbstractExtension
         return [
             new TwigFunction('render_products_viewed',
                 [$this, 'renderProductsViewed'],
-                ['needs_environment' => true, 'is_safe' => ['html']]
+                ['needs_environment' => true, 'is_safe' => ['html']],
             ),
         ];
     }
@@ -74,7 +74,7 @@ final class ProductsViewedExtension extends AbstractExtension
             context: [
                 'products_viewed' => iterator_to_array($productsViewed),
                 'current_invariable_id' => $currentInvariableId,
-            ]
+            ],
         );
     }
 }

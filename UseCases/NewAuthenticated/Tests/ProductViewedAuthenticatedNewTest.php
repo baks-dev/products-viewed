@@ -54,7 +54,7 @@ class ProductViewedAuthenticatedNewTest extends KernelTestCase
         $main = $em->getRepository(ProductsViewed::class)
             ->findOneBy([
                 'usr' => UserUid::TEST,
-                'invariable' => ProductInvariableUid::TEST
+                'invariable' => ProductInvariableUid::TEST,
             ]);
 
         if($main)

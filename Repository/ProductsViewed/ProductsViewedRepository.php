@@ -125,48 +125,12 @@ final class ProductsViewedRepository implements ProductsViewedInterface
             ->setParameter(
                 key: 'viewedProducts',
                 value: $viewedProducts,
-                type: ArrayParameterType::STRING
+                type: ArrayParameterType::STRING,
             )
             ->addOrderBy($orderByCase)
             ->addGroupBy('invariable.id');
 
         $dbal->enableCache('products-viewed');
-
-        $result = $dbal->fetchAllHydrate(ProductsViewedResult::class);
-
-        return (true === $result->valid()) ? $result : false;
-    }
-
-    /**
-     * Получение данных о продукте для авторизованного пользователя
-     *
-     * @return Generator<int, ProductsViewedResult>|false
-     */
-    public function findUserProductInvariablesViewed(?UserUid $usr): Generator|false
-    {
-        $dbal = $this->builder();
-
-        $dbal
-            ->addSelect('viewed.invariable as invariable_id')
-            ->from(ProductsViewed::class, 'viewed')
-            ->where('viewed.usr = :usr')
-            ->setParameter(
-                key: 'usr',
-                value: $usr,
-                type: UserUid::TYPE
-            )
-            ->addGroupBy('viewed.viewed_date')
-            ->addGroupBy('viewed.invariable');
-
-        $dbal
-            ->leftJoin(
-                'viewed',
-                ProductInvariable::class,
-                'invariable',
-                'invariable.id = viewed.invariable'
-            );
-
-        $dbal->orderBy('viewed.viewed_date', 'DESC');
 
         $result = $dbal->fetchAllHydrate(ProductsViewedResult::class);
 
@@ -185,14 +149,14 @@ final class ProductsViewedRepository implements ProductsViewedInterface
                 'invariable',
                 Product::class,
                 'product',
-                'product.id = invariable.product'
+                'product.id = invariable.product',
             );
 
         $dbal->leftJoin(
             'product',
             ProductEvent::class,
             'product_event',
-            'product_event.id = product.event'
+            'product_event.id = product.event',
         );
 
         $dbal
@@ -201,7 +165,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
                 'product',
                 ProductTrans::class,
                 'product_trans',
-                'product_trans.event = product.event AND product_trans.local = :local'
+                'product_trans.event = product.event AND product_trans.local = :local',
             );
 
         /**
@@ -213,7 +177,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
                 'product',
                 ProductInfo::class,
                 'product_info',
-                'product_info.event = product.event'
+                'product_info.event = product.event',
             );
 
         /**
@@ -232,7 +196,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
             'product_event_category',
             CategoryProduct::class,
             'category',
-            'category.id = product_event_category.category'
+            'category.id = product_event_category.category',
         );
 
         $dbal
@@ -241,7 +205,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
                 'category',
                 CategoryProductInfo::class,
                 'category_info',
-                'category_info.event = category.event'
+                'category_info.event = category.event',
             );
 
 
@@ -265,7 +229,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
                 'product_offer',
                 CategoryProductOffers::class,
                 'category_offer',
-                'category_offer.id = product_offer.category_offer'
+                'category_offer.id = product_offer.category_offer',
             );
 
         /** VARIATION */
@@ -288,7 +252,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
                 'product_variation',
                 CategoryProductVariation::class,
                 'category_variation',
-                'category_variation.id = product_variation.category_variation'
+                'category_variation.id = product_variation.category_variation',
             );
 
         /** MODIFICATION */
@@ -311,7 +275,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
                 'product_modification',
                 CategoryProductModification::class,
                 'category_modification',
-                'category_modification.id = product_modification.category_modification'
+                'category_modification.id = product_modification.category_modification',
             );
 
         /** Артикул продукта */
@@ -331,7 +295,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
             'product',
             ProductPrice::class,
             'product_price',
-            'product_price.event = product.event'
+            'product_price.event = product.event',
         );
 
         $dbal
@@ -339,7 +303,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
                 'product_offer',
                 ProductOfferPrice::class,
                 'offer_price',
-                'offer_price.offer = product_offer.id'
+                'offer_price.offer = product_offer.id',
             );
 
         $dbal
@@ -347,7 +311,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
                 'product_variation',
                 ProductVariationPrice::class,
                 'variation_price',
-                'variation_price.variation = product_variation.id'
+                'variation_price.variation = product_variation.id',
             );
 
         $dbal
@@ -355,7 +319,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
                 'product_modification',
                 ProductModificationPrice::class,
                 'modification_price',
-                'modification_price.modification = product_modification.id'
+                'modification_price.modification = product_modification.id',
             );
 
         /**
@@ -365,21 +329,21 @@ final class ProductsViewedRepository implements ProductsViewedInterface
             'product_offer',
             ProductOfferQuantity::class,
             'product_offer_quantity',
-            'product_offer_quantity.offer = product_offer.id'
+            'product_offer_quantity.offer = product_offer.id',
         );
 
         $dbal->leftJoin(
             'product_variation',
             ProductVariationQuantity::class,
             'product_variation_quantity',
-            'product_variation_quantity.variation = product_variation.id'
+            'product_variation_quantity.variation = product_variation.id',
         );
 
         $dbal->leftJoin(
             'product_modification',
             ProductModificationQuantity::class,
             'product_modification_quantity',
-            'product_modification_quantity.modification = product_modification.id'
+            'product_modification_quantity.modification = product_modification.id',
         );
 
         $dbal->addSelect("
@@ -398,7 +362,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
              
              ELSE 0
            END AS product_quantity
-          "
+          ",
         );
 
         /**
@@ -408,7 +372,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
             'product_event',
             ProductPhoto::class,
             'product_photo',
-            'product_photo.event = product_event.id AND product_photo.root = true'
+            'product_photo.event = product_event.id AND product_photo.root = true',
         )
             ->addGroupBy('product_photo.ext');
 
@@ -416,7 +380,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
             'product_offer',
             ProductOfferImage::class,
             'product_offer_images',
-            'product_offer_images.offer = product_offer.id AND product_offer_images.root = true'
+            'product_offer_images.offer = product_offer.id AND product_offer_images.root = true',
         )
             ->addGroupBy('product_offer_images.ext');
 
@@ -424,7 +388,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
             'product_offer',
             ProductVariationImage::class,
             'product_variation_image',
-            'product_variation_image.variation = product_variation.id AND product_variation_image.root = true'
+            'product_variation_image.variation = product_variation.id AND product_variation_image.root = true',
         )
             ->addGroupBy('product_variation_image.ext');
 
@@ -432,7 +396,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
             'product_modification',
             ProductModificationImage::class,
             'product_modification_image',
-            'product_modification_image.modification = product_modification.id AND product_modification_image.root = true'
+            'product_modification_image.modification = product_modification.id AND product_modification_image.root = true',
         )
             ->addGroupBy('product_modification_image.ext');
 
@@ -493,7 +457,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
             
             ELSE NULL
             END
-			AS product_root_image"
+			AS product_root_image",
         );
 
         /** Цена */
@@ -625,7 +589,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
                     UserProfile::class,
                     'current_profile',
                     '
-                        current_profile.id = :'.$dbal::CURRENT_PROFILE_KEY
+                        current_profile.id = :'.$dbal::CURRENT_PROFILE_KEY,
                 );
 
             $dbal
@@ -636,7 +600,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
                     'current_profile_discount',
                     '
                         current_profile_discount.event = current_profile.event
-                        '
+                        ',
                 );
         }
 
@@ -650,7 +614,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
                     UserProfile::class,
                     'project_profile',
                     '
-                        project_profile.id = :'.$dbal::PROJECT_PROFILE_KEY
+                        project_profile.id = :'.$dbal::PROJECT_PROFILE_KEY,
                 );
 
             $dbal
@@ -660,7 +624,7 @@ final class ProductsViewedRepository implements ProductsViewedInterface
                     UserProfileDiscount::class,
                     'project_profile_discount',
                     '
-                        project_profile_discount.event = project_profile.event'
+                        project_profile_discount.event = project_profile.event',
                 );
         }
 
@@ -668,5 +632,41 @@ final class ProductsViewedRepository implements ProductsViewedInterface
         $dbal->setMaxResults(self::VIEWED_PRODUCTS_LIMIT);
 
         return $dbal;
+    }
+
+    /**
+     * Получение данных о продукте для авторизованного пользователя
+     *
+     * @return Generator<int, ProductsViewedResult>|false
+     */
+    public function findUserProductInvariablesViewed(?UserUid $usr): Generator|false
+    {
+        $dbal = $this->builder();
+
+        $dbal
+            ->addSelect('viewed.invariable as invariable_id')
+            ->from(ProductsViewed::class, 'viewed')
+            ->where('viewed.usr = :usr')
+            ->setParameter(
+                key: 'usr',
+                value: $usr,
+                type: UserUid::TYPE,
+            )
+            ->addGroupBy('viewed.viewed_date')
+            ->addGroupBy('viewed.invariable');
+
+        $dbal
+            ->leftJoin(
+                'viewed',
+                ProductInvariable::class,
+                'invariable',
+                'invariable.id = viewed.invariable',
+            );
+
+        $dbal->orderBy('viewed.viewed_date', 'DESC');
+
+        $result = $dbal->fetchAllHydrate(ProductsViewedResult::class);
+
+        return (true === $result->valid()) ? $result : false;
     }
 }

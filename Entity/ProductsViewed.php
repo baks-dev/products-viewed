@@ -58,14 +58,14 @@ class ProductsViewed
     #[ORM\Column(name: 'viewed_date', type: Types::DATETIME_IMMUTABLE, nullable: false)]
     private DateTimeImmutable $viewedDate;
 
-    public function getViewedDate(): DateTimeImmutable
-    {
-        return $this->viewedDate;
-    }
-
     public function __construct()
     {
         $this->viewedDate = new DateTimeImmutable();
+    }
+
+    public function getViewedDate(): DateTimeImmutable
+    {
+        return $this->viewedDate;
     }
 
     public function __toString(): string

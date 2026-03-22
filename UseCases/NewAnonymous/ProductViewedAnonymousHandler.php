@@ -47,7 +47,7 @@ final readonly class ProductViewedAnonymousHandler
          * Для уникальности значений добавляем в начало массива с ключом,
          * имеющим значение самого элемента
          */
-        $viewedProducts = [(string)$dto->getId() => (string)$dto->getId()] + $viewedProducts;
+        $viewedProducts = [(string) $dto->getId() => (string) $dto->getId()] + $viewedProducts;
 
         /**
          * Обновить данные в сессии
