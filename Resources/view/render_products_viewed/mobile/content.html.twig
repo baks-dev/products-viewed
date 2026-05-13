@@ -24,7 +24,7 @@
                        offer : product.productOfferValue,
                        variation : product.productVariationValue,
                        modification : product.productModificationValue,
-                       postfix: (product.productModificationPostfix ?: product.productVariationPostfix ?: product.productOfferPostfix ?: null )|replace({ '/': '-' }),
+                       postfix: (product.productModificationPostfix ?: product.productVariationPostfix ?: product.productOfferPostfix ?: null )|replace({ '/': '-', ' ': '~' }),
                    }) }}">
 
                     <div class="d-flex flex-column align-items-center  gap-3">
@@ -53,7 +53,7 @@
                                 {# Значение торгового предложения #}
                                 {{ product.productOfferValue|call_twig_func(product.productOfferReference~'_render') }}
 
-                                {{ (product.productModificationPostfix ?: product.productVariationPostfix ?: product.productOfferPostfix ?: null )|replace({ '/': '-' }) }}
+                                {{ (product.productModificationPostfix ?: product.productVariationPostfix ?: product.productOfferPostfix ?: null )|replace({ '/': '-', ' ': '~' }) }}
                             </h3>
 
                             {# Цена с учетом персональной скидки #}
