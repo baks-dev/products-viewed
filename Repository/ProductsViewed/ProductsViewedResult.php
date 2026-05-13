@@ -185,6 +185,12 @@ final readonly class ProductsViewedResult implements ProductPriceResultInterface
         /** Оригинальная цена */
         $price = new Money($this->price, true);
 
+        /* Торговая наценка с учетом сезонности */
+        if(false === empty($this->season_percent))
+        {
+            $price->applyString($this->season_percent);
+        }
+
         /** Кастомная цена */
         if(false === empty($this->promotion_price) && true === $this->promotion_active)
         {
@@ -201,12 +207,6 @@ final readonly class ProductsViewedResult implements ProductPriceResultInterface
         if(false === empty($this->profile_discount))
         {
             $price->applyString($this->profile_discount);
-        }
-
-        /* Торговая наценка с учетом сезонности */
-        if(false === empty($this->season_percent))
-        {
-            $price->applyString($this->season_percent);
         }
 
         return $price;
@@ -221,6 +221,12 @@ final readonly class ProductsViewedResult implements ProductPriceResultInterface
 
         $price = new Money($this->old_price, true);
 
+        /* Торговая наценка с учетом сезонности */
+        if(false === empty($this->season_percent))
+        {
+            $price->applyString($this->season_percent);
+        }
+
         /** Кастомная цена */
         if(false === empty($this->promotion_price) && true === $this->promotion_active)
         {
@@ -237,12 +243,6 @@ final readonly class ProductsViewedResult implements ProductPriceResultInterface
         if(false === empty($this->profile_discount))
         {
             $price->applyString($this->profile_discount);
-        }
-
-        /* Торговая наценка с учетом сезонности */
-        if(false === empty($this->season_percent))
-        {
-            $price->applyString($this->season_percent);
         }
 
         return $price;
