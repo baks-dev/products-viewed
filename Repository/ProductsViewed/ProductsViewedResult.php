@@ -72,6 +72,7 @@ final readonly class ProductsViewedResult implements ProductPriceResultInterface
         private string|null $profile_discount = null,
         private string|null $project_discount = null,
 
+        private string|null $season_percent = null,
     ) {}
 
     public function getProductInvariableId(): ?ProductInvariableUid
@@ -202,6 +203,12 @@ final readonly class ProductsViewedResult implements ProductPriceResultInterface
             $price->applyString($this->profile_discount);
         }
 
+        /* Торговая наценка с учетом сезонности */
+        if(false === empty($this->season_percent))
+        {
+            $price->applyString($this->season_percent);
+        }
+
         return $price;
     }
 
@@ -230,6 +237,12 @@ final readonly class ProductsViewedResult implements ProductPriceResultInterface
         if(false === empty($this->profile_discount))
         {
             $price->applyString($this->profile_discount);
+        }
+
+        /* Торговая наценка с учетом сезонности */
+        if(false === empty($this->season_percent))
+        {
+            $price->applyString($this->season_percent);
         }
 
         return $price;
